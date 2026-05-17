@@ -1,0 +1,113 @@
+# Edge-Deployable Driver Assistance Vision Project
+
+This repository contains a full computer vision term project implementing, comparing, and deploying two edge-AI pipelines:
+
+- Eye-state classification (open vs. closed), targeted for Samsung Galaxy S24 Ultra.
+- Lane-direction classification (left, right, straight, stop), targeted for Raspberry Pi 4.
+
+The project is organized as reproducible experiment stages from data checks to final deployment artifacts and paper generation.
+
+## Project Objectives
+
+- Build classical computer vision baselines for both tasks.
+- Build and evaluate custom lightweight CNN baselines.
+- Evaluate transfer learning variants (MobileNetV2/V3).
+- Run controlled improved-experiment studies.
+- Select winners using accuracy/F1/efficiency trade-offs.
+- Export edge-ready deployment formats (TFLite, OpenVINO where applicable).
+- Produce publication-ready figures and paper assets.
+
+## High-Level Results
+
+Based on the recorded summaries and artifacts:
+
+- Eye winner: `lw_wide` family (edge-efficient and accurate).
+- Lane winner: `lw_baseline` family.
+- Eye PTQ int8 model: ~106 KB.
+- Lane PTQ int8 model: ~98 KB.
+
+See `paper/summary.md` and `artifacts/` JSON files for exact numeric metrics.
+
+## Repository Layout
+
+- `artifacts/`: all generated models, metrics JSON files, figures, deployment outputs, and manifests.
+- `datasets/`: source datasets (CEW and TuSimple) used by the pipelines.
+- `fine_tuning/`: phone/Pi domain adaptation datasets and captures.
+- `notebooks/`: staged notebook pipelines for setup, eye track, lane track, and paper figures.
+- `paper/`: IEEE paper source, tables, generated figures, and compiled outputs.
+- `tools/`: helper/mobile benchmarking utilities.
+
+Each directory includes a `DESCRIPTION.md` with role, contents, and usage notes.
+
+## Experiment Workflow
+
+### 1. Environment setup
+
+Start with:
+
+- `notebooks/00_setup_environment.ipynb`
+
+This prepares dependencies, seeds, and reproducibility conventions.
+
+### 2. Eye pipeline notebooks
+
+In order:
+
+1. `notebooks/eye/01_eye_data_exploration.ipynb`
+2. `notebooks/eye/02_eye_classical_baseline.ipynb`
+3. `notebooks/eye/03_eye_cnn_baseline.ipynb`
+4. `notebooks/eye/04_eye_transfer_learning.ipynb`
+5. `notebooks/eye/05_eye_improved_experiments.ipynb`
+6. `notebooks/eye/06_eye_model_selection.ipynb`
+7. `notebooks/eye/07_eye_finetune.ipynb`
+8. `notebooks/eye/08_eye_mobile_deployment.ipynb`
+
+### 3. Lane pipeline notebooks
+
+In order:
+
+1. `notebooks/lane/01_lane_data_exploration.ipynb`
+2. `notebooks/lane/02_lane_classical_baseline.ipynb`
+3. `notebooks/lane/03_lane_cnn_baseline.ipynb`
+4. `notebooks/lane/04_lane_transfer_learning.ipynb`
+5. `notebooks/lane/05_lane_improved_experiments.ipynb`
+6. `notebooks/lane/06_lane_model_selection.ipynb`
+7. `notebooks/lane/07_lane_finetune.ipynb`
+8. `notebooks/lane/08_lane_rpi_deployment.ipynb`
+
+### 4. Paper assets
+
+- Generate/refresh figure assets with `notebooks/09_paper_figures.ipynb`.
+- Build paper from `paper/paper.tex`.
+
+## Artifacts and Traceability
+
+The `artifacts/` folder is the source of truth for:
+
+- split definitions,
+- quantitative metrics,
+- model binaries,
+- deployment packages,
+- visual diagnostics.
+
+For a complete per-file description, see:
+
+- `artifacts/DESCRIPTION.md`
+
+## Reproducibility Notes
+
+- A global seed is used across notebooks (`seed = 42` in manifests/summary).
+- Splits are persisted to JSON (`eye_split.json`, `lane_split.json`) to avoid leakage.
+- Metrics and deployment measurements are stored as JSON/PNG under `artifacts/`.
+- Paper figures are generated from experiment outputs, not manually drawn.
+
+## Typical Usage
+
+1. Verify data availability under `datasets/` and `fine_tuning/`.
+2. Run notebooks sequentially for each track.
+3. Inspect generated results in `artifacts/`.
+4. Regenerate paper figures and compile `paper/paper.tex`.
+
+## License and Academic Context
+
+This repository appears to be a university term-project codebase with research/reporting outputs. Confirm dataset licenses and third-party usage terms before redistribution of data assets.
