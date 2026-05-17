@@ -1,0 +1,23 @@
+{
+  "model": "classical_hog_svm",
+  "color_space": "hsv_v",
+  "best_C": 0.1,
+  "accuracy": 0.8736263736263736,
+  "precision": 0.8716577540106952,
+  "recall": 0.8810810810810811,
+  "f1": 0.8763440860215054,
+  "auc": 0.9460667371281898,
+  "confusion_matrix": [
+    [
+      155,
+      24
+    ],
+    [
+      22,
+      163
+    ]
+  ],
+  "feature_dim": 4356,
+  "n_params": 4357,
+  "test_size": 364
+}

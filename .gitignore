@@ -1,0 +1,6 @@
+.claude/
+.claude./
+datasets/
+fine_tuning/
+**/eye07_face_detection.png
+**/eye07_cropped_100x100.png

@@ -1,0 +1,25 @@
+{
+  "seed": 42,
+  "paths": {
+    "cew_closed": "datasets\\CEW\\cropped\\dataset_B_FacialImages\\ClosedFace",
+    "cew_open": "datasets\\CEW\\cropped\\dataset_B_FacialImages\\OpenFace",
+    "cew_fullres": "datasets\\CEW\\full res\\dataset_B_FacialImages_highResolution",
+    "tusimple_frames": "datasets\\tusimple\\training\\frames",
+    "tusimple_masks": "datasets\\tusimple\\training\\lane-masks",
+    "cew_finetune": "fine_tuning\\CEW_fine_tuning",
+    "lane_ft_images": "fine_tuning\\lane_fine_tuning\\segmentation_dataset\\images",
+    "lane_ft_masks": "fine_tuning\\lane_fine_tuning\\segmentation_dataset\\masks",
+    "lane_ft_videos": "fine_tuning\\lane_fine_tuning\\videos"
+  },
+  "expected_counts": {
+    "cew_closed": 1192,
+    "cew_open": 1231,
+    "cew_fullres": 1192,
+    "tusimple_frames": 3626,
+    "tusimple_masks": 3626,
+    "cew_finetune": 12,
+    "lane_ft_images": 10500,
+    "lane_ft_masks": 10500,
+    "lane_ft_videos": 6
+  }
+}

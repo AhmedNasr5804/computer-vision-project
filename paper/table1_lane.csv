@@ -1,0 +1,10 @@
+family,name,accuracy,f1,n_params
+classical,classical_hough_svm,0.505,0.575,0
+cnn_scratch,cnn_from_scratch,0.7023,0.6592,86276
+transfer_learning,mobilenetv2_frozen,0.7241,0.7379,711348
+transfer_learning,mobilenetv2_finetune,0.7759,0.7785,711348
+transfer_learning,mobilenetv3_small_frozen,0.607,0.6428,584892
+transfer_learning,mobilenetv3_small_finetune,0.7107,0.6819,584892
+lightweight,lw_tiny,0.6405,0.5445,7300
+lightweight,lw_baseline,0.7441,0.7752,86276
+lightweight,lw_wide,0.7458,0.7212,195300

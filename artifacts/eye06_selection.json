@@ -1,0 +1,114 @@
+{
+  "winner": "lw_wide",
+  "weights": {
+    "accuracy": 0.35,
+    "f1": 0.15,
+    "accuracy_robust": 0.2,
+    "n_params": 0.05,
+    "size_mb": 0.1
+  },
+  "candidates": [
+    {
+      "name": "cnn_from_scratch_w16",
+      "family": "cnn_scratch",
+      "n_params": 25778,
+      "accuracy": 0.8956043956043956,
+      "f1": 0.8983957219251337,
+      "accuracy_robust": 0.6620879120879122,
+      "keras_path": "artifacts/eye03_cnn_baseline.keras",
+      "gray": true,
+      "size_mb": 0.03299713134765625,
+      "score_weighted": 0.6855565444241748
+    },
+    {
+      "name": "mobilenetv3_small_frozen",
+      "family": "transfer_learning",
+      "n_params": 940274,
+      "accuracy": 0.8516483516483516,
+      "f1": 0.8586387434554974,
+      "accuracy_robust": 0.6387362637362637,
+      "keras_path": "artifacts\\eye04_mobilenetv3_small_frozen.keras",
+      "gray": false,
+      "size_mb": 1.1680908203125,
+      "score_weighted": 0.18367695674301104
+    },
+    {
+      "name": "mobilenetv3_small_finetune",
+      "family": "transfer_learning",
+      "n_params": 940274,
+      "accuracy": 0.8434065934065934,
+      "f1": 0.8471849865951743,
+      "accuracy_robust": 0.632554945054945,
+      "keras_path": "artifacts\\eye04_mobilenetv3_small_finetune.keras",
+      "gray": false,
+      "size_mb": 1.1687545776367188,
+      "score_weighted": 0.08437438804501096
+    },
+    {
+      "name": "mobilenetv2_frozen",
+      "family": "transfer_learning",
+      "n_params": 2260546,
+      "accuracy": 0.8736263736263736,
+      "f1": 0.8715083798882681,
+      "accuracy_robust": 0.6552197802197802,
+      "keras_path": "artifacts\\eye04_mobilenetv2_frozen.keras",
+      "gray": false,
+      "size_mb": 2.5901641845703125,
+      "score_weighted": 0.3215419526151046
+    },
+    {
+      "name": "mobilenetv2_finetune",
+      "family": "transfer_learning",
+      "n_params": 2260546,
+      "accuracy": 0.8846153846153846,
+      "f1": 0.8877005347593583,
+      "accuracy_robust": 0.6634615384615384,
+      "keras_path": "artifacts\\eye04_mobilenetv2_finetune.keras",
+      "gray": false,
+      "size_mb": 2.5906524658203125,
+      "score_weighted": 0.45610520883961586
+    },
+    {
+      "name": "lw_tiny",
+      "family": "lightweight",
+      "n_params": 4328,
+      "accuracy": 0.8736263736263736,
+      "f1": 0.8729281767955801,
+      "accuracy_robust": 0.6552197802197802,
+      "keras_path": "artifacts/eye05_lw_tiny.keras",
+      "gray": true,
+      "size_mb": 0.0108184814453125,
+      "score_weighted": 0.47493657441658876
+    },
+    {
+      "name": "lw_baseline",
+      "family": "lightweight",
+      "n_params": 25778,
+      "accuracy": 0.8956043956043956,
+      "f1": 0.8983957219251337,
+      "accuracy_robust": 0.6717032967032968,
+      "keras_path": "artifacts/eye05_lw_baseline.keras",
+      "gray": true,
+      "size_mb": 0.03287506103515625,
+      "score_weighted": 0.7261409854247431
+    },
+    {
+      "name": "lw_wide",
+      "family": "lightweight",
+      "n_params": 97538,
+      "accuracy": 0.9065934065934066,
+      "f1": 0.9095744680851063,
+      "accuracy_robust": 0.679945054945055,
+      "keras_path": "artifacts/eye05_lw_wide.keras",
+      "gray": true,
+      "size_mb": 0.10387420654296875,
+      "score_weighted": 0.8443273198202499
+    }
+  ],
+  "pareto": [
+    "cnn_from_scratch_w16",
+    "lw_tiny",
+    "lw_baseline",
+    "lw_wide"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "FP32": {
+    "accuracy": 0.9065934065934066,
+    "latency_ms_local_cpu": 0.9282100000018545,
+    "size_kb": 383.0,
+    "cpu_4thr_ms": 0.45,
+    "gpu_ms": 1.305,
+    "nnapi_ms": 0.451
+  },
+  "PTQ-int8": {
+    "accuracy": 0.9093406593406593,
+    "latency_ms_local_cpu": 0.4380029999992985,
+    "size_kb": 106.609375,
+    "cpu_4thr_ms": 0.126,
+    "gpu_ms": 1.1,
+    "nnapi_ms": 0.125
+  },
+  "_device": "Samsung Galaxy S24 Ultra (SM-S928B), Snapdragon 8 Gen 3 + Adreno 750 + Hexagon NPU",
+  "_apk_version": "org.tensorflow.lite.benchmark v2.1.1 (nightly arm64)",
+  "_notes": "NNAPI delegate created but fell back to XNNPACK. Samsung OneUI does not expose Hexagon to NNAPI on Android 15+. GPU (Adreno OpenCL) is slower than CPU on this tiny model because OpenCL kernel-launch overhead dominates."
+}

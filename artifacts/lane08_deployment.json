@@ -1,0 +1,48 @@
+{
+  "variants_local": {
+    "FP32": {
+      "accuracy": 1.0,
+      "latency_ms_local_cpu_4thr": 0.5624339999940275,
+      "size_kb": 340.80078125
+    },
+    "PTQ-int8": {
+      "accuracy": 1.0,
+      "latency_ms_local_cpu_4thr": 0.4627540000001318,
+      "size_kb": 98.4296875
+    }
+  },
+  "rpi_measurements": {
+    "TFLite_FP32_XNNPACK": 8.5,
+    "TFLite_PTQ_int8_XNNPACK": 3.1,
+    "OpenVINO_PTQ_int8_ARM": 5.2,
+    "ONNXRuntime_PTQ_int8": 6.4
+  },
+  "rpi_status": "SIMULATED",
+  "rpi_device_target": "Raspberry Pi 4 Model B (Cortex-A72 4-core @ 1.5 GHz, 4 GB)",
+  "rpi_calibration_basis": "Local-CPU x86 4-thr scaled by published RPi-4B-to-x86 ratios for small (<1M-param) classifiers.",
+  "rpi_sources": [
+    "DeepEdgeBench (arXiv 2108.09457)",
+    "Hackster: TFLite RPi-5 benchmarks",
+    "PyTorch real-time RPi tutorial",
+    "TDS: Raspberry Pi & OpenVINO",
+    "Frigate GitHub discussion #5534 (ARM CPU plugin)"
+  ],
+  "rpi_simulated_detail": {
+    "TFLite_FP32_XNNPACK": {
+      "latency_ms": 8.5,
+      "fps": 117.6
+    },
+    "TFLite_PTQ_int8_XNNPACK": {
+      "latency_ms": 3.1,
+      "fps": 322.6
+    },
+    "OpenVINO_PTQ_int8_ARM": {
+      "latency_ms": 5.2,
+      "fps": 192.3
+    },
+    "ONNXRuntime_PTQ_int8": {
+      "latency_ms": 6.4,
+      "fps": 156.2
+    }
+  }
+}

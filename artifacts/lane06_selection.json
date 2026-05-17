@@ -1,0 +1,106 @@
+{
+  "winner": "lw_baseline",
+  "weights": {
+    "accuracy": 0.25,
+    "f1": 0.2,
+    "accuracy_robust": 0.15,
+    "n_params": 0.05,
+    "size_mb": 0.1
+  },
+  "candidates": [
+    {
+      "name": "cnn_from_scratch",
+      "family": "cnn_scratch",
+      "n_params": 86276,
+      "accuracy": 0.7023411371237458,
+      "f1": 0.6591518821223297,
+      "accuracy_robust": 0.586000955566173,
+      "keras_path": "artifacts/lane03_cnn_baseline.keras",
+      "size_mb": 0.09622955322265625,
+      "score_weighted": 0.5252924197319642
+    },
+    {
+      "name": "mobilenetv2_frozen",
+      "family": "transfer_learning",
+      "n_params": 711348,
+      "accuracy": 0.7240802675585284,
+      "f1": 0.73790877919387,
+      "accuracy_robust": 0.5430602006688963,
+      "keras_path": "artifacts/lane04_mobilenetv2_frozen.keras",
+      "size_mb": 0.9506301879882812,
+      "score_weighted": 0.4394225691076741
+    },
+    {
+      "name": "mobilenetv2_finetune",
+      "family": "transfer_learning",
+      "n_params": 711348,
+      "accuracy": 0.7759197324414716,
+      "f1": 0.7784831143530766,
+      "accuracy_robust": 0.5819397993311037,
+      "keras_path": "artifacts/lane04_mobilenetv2_finetune.keras",
+      "size_mb": 0.9515762329101562,
+      "score_weighted": 0.5953403347146426
+    },
+    {
+      "name": "mobilenetv3_small_frozen",
+      "family": "transfer_learning",
+      "n_params": 584892,
+      "accuracy": 0.6070234113712375,
+      "f1": 0.6428411882367323,
+      "accuracy_robust": 0.45526755852842815,
+      "keras_path": "artifacts/lane04_mobilenetv3_small_frozen.keras",
+      "size_mb": 0.7987899780273438,
+      "score_weighted": 0.10945074380269866
+    },
+    {
+      "name": "mobilenetv3_small_finetune",
+      "family": "transfer_learning",
+      "n_params": 584892,
+      "accuracy": 0.7107023411371237,
+      "f1": 0.6819367841403745,
+      "accuracy_robust": 0.5330267558528428,
+      "keras_path": "artifacts/lane04_mobilenetv3_small_finetune.keras",
+      "size_mb": 0.79888916015625,
+      "score_weighted": 0.385537663918661
+    },
+    {
+      "name": "lw_tiny",
+      "family": "lightweight",
+      "n_params": 7300,
+      "accuracy": 0.6404682274247492,
+      "f1": 0.5444716246471982,
+      "accuracy_robust": 0.4803511705685619,
+      "keras_path": "artifacts/lane05_lw_tiny.keras",
+      "size_mb": 0.0198211669921875,
+      "score_weighted": 0.22828521494296572
+    },
+    {
+      "name": "lw_baseline",
+      "family": "lightweight",
+      "n_params": 86276,
+      "accuracy": 0.7441471571906354,
+      "f1": 0.775226416570012,
+      "accuracy_robust": 0.5581103678929765,
+      "keras_path": "artifacts/lane05_lw_baseline.keras",
+      "size_mb": 0.09647369384765625,
+      "score_weighted": 0.6543506241628051
+    },
+    {
+      "name": "lw_wide",
+      "family": "lightweight",
+      "n_params": 195300,
+      "accuracy": 0.745819397993311,
+      "f1": 0.7211647649129289,
+      "accuracy_robust": 0.5593645484949832,
+      "keras_path": "artifacts/lane05_lw_wide.keras",
+      "size_mb": 0.202911376953125,
+      "score_weighted": 0.5928946056449595
+    }
+  ],
+  "pareto": [
+    "mobilenetv2_finetune",
+    "lw_tiny",
+    "lw_baseline",
+    "lw_wide"
+  ]
+}

@@ -1,0 +1,10 @@
+family,name,accuracy,f1,n_params
+classical,classical_hog_svm,0.8736,0.8763,4357
+cnn_scratch,cnn_baseline_from_scratch,0.8956,0.8984,25778
+transfer_learning,mobilenetv3_small_frozen,0.8516,0.8586,940274
+transfer_learning,mobilenetv3_small_finetune,0.8434,0.8472,940274
+transfer_learning,mobilenetv2_frozen,0.8736,0.8715,2260546
+transfer_learning,mobilenetv2_finetune,0.8846,0.8877,2260546
+lightweight,lw_tiny,0.8736,0.8729,4328
+lightweight,lw_baseline,0.8956,0.8984,25778
+lightweight,lw_wide,0.9066,0.9096,97538
