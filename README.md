@@ -1,11 +1,28 @@
 # Edge-Deployable Driver Assistance Vision Project
 
+[![Status](https://img.shields.io/badge/status-active-success)](./README.md)
+[![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Raspberry%20Pi-blue)](./README.md)
+[![Framework](https://img.shields.io/badge/framework-TensorFlow%20%2F%20TFLite-orange)](./README.md)
+[![Paper](https://img.shields.io/badge/report-IEEE%20style-lightgrey)](paper/paper.tex)
+
 This repository contains a full computer vision term project implementing, comparing, and deploying two edge-AI pipelines:
 
 - Eye-state classification (open vs. closed), targeted for Samsung Galaxy S24 Ultra.
 - Lane-direction classification (left, right, straight, stop), targeted for Raspberry Pi 4.
 
 The project is organized as reproducible experiment stages from data checks to final deployment artifacts and paper generation.
+
+## Table of Contents
+
+1. [Project Objectives](#project-objectives)
+2. [High-Level Results](#high-level-results)
+3. [Repository Layout](#repository-layout)
+4. [Experiment Workflow](#experiment-workflow)
+5. [Quick Start (Run Commands)](#quick-start-run-commands)
+6. [Artifacts and Traceability](#artifacts-and-traceability)
+7. [Reproducibility Notes](#reproducibility-notes)
+8. [Typical Usage](#typical-usage)
+9. [License and Academic Context](#license-and-academic-context)
 
 ## Project Objectives
 
@@ -79,6 +96,56 @@ In order:
 
 - Generate/refresh figure assets with `notebooks/09_paper_figures.ipynb`.
 - Build paper from `paper/paper.tex`.
+
+## Quick Start (Run Commands)
+
+### Option A: Run notebooks interactively in Jupyter/VS Code
+
+1. Open `notebooks/00_setup_environment.ipynb` and run all cells.
+2. Run the eye notebooks in numeric order (`01` to `08`).
+3. Run the lane notebooks in numeric order (`01` to `08`).
+4. Run `notebooks/09_paper_figures.ipynb`.
+
+### Option B: Run all notebooks from PowerShell (headless execution)
+
+From repository root:
+
+```powershell
+# 0) Setup
+jupyter nbconvert --to notebook --execute --inplace notebooks/00_setup_environment.ipynb
+
+# 1) Eye pipeline
+jupyter nbconvert --to notebook --execute --inplace notebooks/eye/01_eye_data_exploration.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/eye/02_eye_classical_baseline.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/eye/03_eye_cnn_baseline.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/eye/04_eye_transfer_learning.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/eye/05_eye_improved_experiments.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/eye/06_eye_model_selection.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/eye/07_eye_finetune.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/eye/08_eye_mobile_deployment.ipynb
+
+# 2) Lane pipeline
+jupyter nbconvert --to notebook --execute --inplace notebooks/lane/01_lane_data_exploration.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/lane/02_lane_classical_baseline.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/lane/03_lane_cnn_baseline.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/lane/04_lane_transfer_learning.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/lane/05_lane_improved_experiments.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/lane/06_lane_model_selection.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/lane/07_lane_finetune.ipynb
+jupyter nbconvert --to notebook --execute --inplace notebooks/lane/08_lane_rpi_deployment.ipynb
+
+# 3) Paper figures
+jupyter nbconvert --to notebook --execute --inplace notebooks/09_paper_figures.ipynb
+```
+
+### Build the paper
+
+```powershell
+Set-Location paper
+pdflatex paper.tex
+pdflatex paper.tex
+Set-Location ..
+```
 
 ## Artifacts and Traceability
 
