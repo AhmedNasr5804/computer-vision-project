@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Eye Demo</string>
+    <string name="permission_camera_rationale">Camera access is required to run the eye-state demo.</string>
+    <string name="permission_denied">Camera permission denied — open Settings to enable.</string>
+    <string name="waiting_face">Looking for a face…</string>
+</resources>

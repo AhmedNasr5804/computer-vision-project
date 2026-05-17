@@ -1,6 +1,75 @@
+# =====================================================================
+# Caches / environments / IDE state
+# =====================================================================
 .claude/
 .claude./
+.idea/
+.vscode/
+*.iml
+.DS_Store
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# =====================================================================
+# Datasets — too large for git, distribute separately. See
+# datasets/DESCRIPTION.md and fine_tuning/DESCRIPTION.md.
+# =====================================================================
 datasets/
 fine_tuning/
+
+# =====================================================================
+# LaTeX build artefacts (paper.pdf is committed, intermediates are not)
+# =====================================================================
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+paper/paper_test.*
+
+# =====================================================================
+# Photos that include other people (privacy)
+# =====================================================================
 **/eye07_face_detection.png
 **/eye07_cropped_100x100.png
+artifacts/eye07_face_detection_user_only.png
+
+# =====================================================================
+# Android: build outputs, Gradle caches, debug pulls — keep sources only
+# =====================================================================
+android_app/.gradle/
+android_app/.idea/
+android_app/build/
+android_app/app/build/
+android_app/local.properties
+android_app/captures/
+android_app/debug_pulls/
+android_app/debug_pulls2/
+android_app/**/*.apk
+android_app/tools/apk_contents/
+
+# Allow committed app icons and resources, but not compiled R classes
+android_app/**/R.class
+android_app/**/R$*.class
+
+# =====================================================================
+# Tools dir — APKs and large binaries used at runtime, not committed
+# =====================================================================
+tools/*.apk
+tools/apk_contents/
+
+# =====================================================================
+# Large intermediate artefacts (regenerable from notebooks)
+# =====================================================================
+artifacts/_lane08_savedmodel/
+artifacts/_*.log
+artifacts/_fix_lane05.log
+artifacts/_lane07.log
+artifacts/_lane08.log
+artifacts/_segformer_masks.log

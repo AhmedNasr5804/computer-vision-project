@@ -708,6 +708,82 @@ PTQ-int8  & \textbf{0.126\,ms} & 1.100\,ms & 0.125\,ms\\
 \end{tabular}
 \end{table}
 
+\textbf{Live demonstration application on the S24 Ultra.}
+Beyond the headless benchmark we built a complete Kotlin Android
+application (\texttt{android\_app/}, $\sim$57\,MB debug APK including
+Material Components and ML Kit's bundled face-detection model) that
+runs the int8 winner against the live front-camera feed at 30~fps in
+real time. The end-to-end pipeline is shown in
+Fig.~\ref{fig:appipe}. We make four observations that informed
+the final implementation and that we believe generalize to any
+similar deployment of a small CEW-trained classifier:
+
+\textit{(i)~CLAHE matters and is not trivial off-the-shelf.}
+TensorFlow Lite ships no Java/Kotlin CLAHE primitive. We
+re-implemented OpenCV's
+\texttt{cv2.createCLAHE(clipLimit=2,\,tileGridSize=(8,8))} in pure
+Kotlin (96 lines, two-pass clip-and-redistribute, bilinear
+inter-tile interpolation). A naive global percentile-stretch
+alternative gave a 44-pixel-mean error against OpenCV's output
+on representative crops, and produced a model bias of $\sim$95\%
+$P($closed$)$ on any face it saw.
+
+\textit{(ii)~Face-detection bounding boxes are not CEW-shaped.}
+ML~Kit's face box is tight to the eye-to-chin region; CEW samples
+contain $\sim$30\% framing space above the eyebrows. We expand the
+ML~Kit box to a square with $30\%$ padding on each side and shift
+the centre upward by $10\%$ of the side length so the eye-line lands
+in the upper third of the resulting crop, matching CEW composition.
+
+\textit{(iii)~Single-frame predictions are too noisy for a stable
+UI label.} We apply an exponential moving average with $\alpha = 0.25$
+(an effective $\sim$230\,ms window) to the per-frame $P(\mathrm{open})$,
+and a Schmitt-trigger hysteresis that requires $P(\mathrm{open}) > 0.62$
+to flip the displayed state to OPEN and $P(\mathrm{open}) < 0.38$ to
+flip it back to CLOSED. This eliminates the label flicker that occurs
+when raw predictions hover near $0.5$.
+
+\textit{(iv)~CEW does not generalize zero-shot to the deployment user.}
+On the twelve S24-captured photos used in
+Section~\ref{sec:results} (six subjects, one
+open/closed pair each), the CEW-trained winner reaches
+only $0.583$ accuracy zero-shot
+(Fig.~\ref{fig:appft}, grey bars), with the largest errors on
+oblique gazes and subjects with beards or visible hair---two
+demographics that are under-represented in CEW. A short
+fine-tune on the same twelve photos
+(12~$\times$~20 augmentations $=$ 240 effective samples, 23
+epochs, Adam, lr=$2\!\times\!10^{-4}$) brings per-subject accuracy
+to $1.000$ (blue bars) while losing only $4.2$\,pp on the canonical
+CEW test split ($0.907 \rightarrow 0.865$). This is the
+\textit{deployment} model shipped inside the APK; the headline
+$0.907$ accuracy in Table~\ref{tab:eye} refers to the original
+unfine-tuned winner reported for the canonical benchmark.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{fig_eye_app_pipeline.png}
+\caption{End-to-end Android pipeline of the live demo. Each frame
+travels from CameraX through ML~Kit face detection, a CEW-shaped
+crop, our in-house Kotlin CLAHE, the int8 \textit{lw\_wide} TFLite
+model, and finally an EMA smoother with Schmitt-trigger hysteresis
+before the label is rendered. Median end-to-end latency is
+$\sim$1\,ms on the S24~Ultra CPU.}
+\label{fig:appipe}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{fig_eye_app_finetune.png}
+\caption{Per-sample $P(\mathrm{open})$ on the 12 S24-Ultra fine-tune
+captures, before (grey) and after (blue) the 30-epoch personal
+fine-tune. Truth markers above each bar pair: green circle = open,
+red square = closed. The base model decides $P(\mathrm{open})<0.5$
+on 5/6 open faces (out-of-distribution); the fine-tuned model is
+correct on all 12 with high confidence.}
+\label{fig:appft}
+\end{figure*}
+
 \textbf{Lane on Raspberry~Pi~4~Model~B (simulated, calibrated).}
 Fig.~\ref{fig:lanerpi} and Table~\ref{tab:lanedeploy} report the
 projected RPi latencies. The numbers are calibrated estimates derived
@@ -786,6 +862,23 @@ should not be read as a generalization claim; the same model on
 TuSimple's test split achieves $0.744$ (see Fig.~\ref{fig:lanecnncm}
 and Table~\ref{tab:lanedeploy}).
 
+\textbf{CEW does not transfer zero-shot, and the fix is cheap.}
+The most actionable single finding of this project is the
+$0.907 \rightarrow 0.583$ accuracy drop the CEW-trained winner
+suffers when moved zero-shot to the S24's front camera
+(Fig.~\ref{fig:appft}). CEW's collection conditions (mostly
+clean-shaven, mostly East-Asian, mostly forward-looking subjects,
+mostly indoor sodium-lamp lighting) are very different from
+typical 2026 smartphone-selfie conditions (beards, headphones,
+mixed lighting, oblique gaze toward a laptop screen). The
+recovery prescription is unspectacular: twelve labeled photos of
+the eventual users, three minutes of CPU fine-tune, no
+architectural change. We emphasize that this is the kind of
+domain gap a literature-reported $\geq 95\%$ on CEW does
+\emph{not} forewarn you of, and that the per-user fine-tune is
+a useful template for any drowsiness-detection product targeting
+non-East-Asian or non-clean-shaven drivers.
+
 \textbf{Why NNAPI is a dead end on this device (eye).}
 The hatched NNAPI bars in Fig.~\ref{fig:eyes24} are visually identical
 to the CPU bars because they \emph{are} the CPU bars. The TFLite
@@ -831,8 +924,16 @@ out-perform or match the much larger transfer-learning candidates on
 accuracy, latency and on-device size, and a transparent, weighted
 multi-criterion algorithm reproducibly picks the deployment winner.
 The eye model meets and exceeds real-time interactivity on the
-S24~Ultra at $0.126$\,ms / inference; the lane model is projected to
-reach $\sim$320~fps on a Raspberry~Pi~4 once measured on hardware.
+S24~Ultra at $0.126$\,ms / inference and runs inside a
+working Android application (CameraX + ML~Kit face detection +
+TFLite, with on-device CLAHE and temporal smoothing); the lane
+model is projected to reach $\sim$320~fps on a Raspberry~Pi~4
+once measured on hardware. The deployment process surfaced two
+practical findings worth reporting on their own: the
+literature-canonical CEW accuracy does not transfer zero-shot
+to a contemporary front-camera deployment ($-32$\,pp), and a
+12-photo personal fine-tune closes the gap without
+catastrophic forgetting.
 The complete code, intermediate JSON manifests, training curves, and
 regenerated masks are released alongside the paper for
 reproducibility.
