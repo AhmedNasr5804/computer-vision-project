@@ -1,0 +1,14 @@
+{
+  "subset_size": 50,
+  "subset_per_direction": {
+    "left": 17,
+    "right": 17,
+    "straight": 16
+  },
+  "n_params": 7193,
+  "epochs": 60,
+  "final_train_loss": 1.0169914960861206,
+  "final_train_iou": 0.24429793655872345,
+  "mean_mask_coverage": 0.01604614220559597,
+  "verdict": "MASKS ARE RUBBISH"
+}

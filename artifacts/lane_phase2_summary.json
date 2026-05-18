@@ -1,0 +1,15 @@
+{
+  "n_images_processed": 10500,
+  "ms_per_image": 20.81050057638259,
+  "old_mask_nonzero_pct": {
+    "min": 0.0,
+    "median": 0.7991536458333333,
+    "max": 13.64040798611111
+  },
+  "new_mask_nonzero_pct": {
+    "min": 27.80099826388889,
+    "median": 34.199001736111114,
+    "max": 36.84971788194444
+  },
+  "recipe": "grayscale -> GaussianBlur(5) -> Otsu+INV -> open(3x3,1) -> drop blobs<200px"
+}

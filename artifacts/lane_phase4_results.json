@@ -1,0 +1,19 @@
+{
+  "n_params": 12609,
+  "split_counts": {
+    "train": 7361,
+    "val": 1556,
+    "test": 1583,
+    "train_source_frames": 1892,
+    "val_source_frames": 404,
+    "test_source_frames": 408
+  },
+  "best_val_iou": 0.996946394443512,
+  "best_val_dice": 0.9984707832336426,
+  "epochs_run": 25,
+  "train_seconds": 585.4442541599274,
+  "test_loss": 0.004684062208980322,
+  "test_iou": 0.9969455003738403,
+  "test_dice": 0.9984704852104187,
+  "gate_passed": true
+}

@@ -1,0 +1,9 @@
+{
+  "subset_size": 50,
+  "n_params": 7193,
+  "epochs": 60,
+  "final_train_loss": 0.012660536915063858,
+  "final_train_iou": 0.992008626461029,
+  "mean_mask_coverage": 0.3239758312702179,
+  "verdict": "MASKS HAVE SIGNAL"
+}

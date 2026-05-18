@@ -1,0 +1,13 @@
+{
+  "n_params": 12627,
+  "epochs_run": 30,
+  "train_seconds": 700.0732452869415,
+  "test_loss": 0.010841093957424164,
+  "test_iou_bg": 0.998391330242157,
+  "test_iou_left": 0.9906755089759827,
+  "test_iou_right": 0.9902502298355103,
+  "test_mean_iou": 0.9931056896845499,
+  "fp32_size_kb": 60.35546875,
+  "int8_size_kb": 27.0390625,
+  "gate_passed": true
+}
