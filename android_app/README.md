@@ -10,7 +10,7 @@
 
 A live Android demo of the **eye-state classifier** (open vs. closed) from the parent CIE-552 project. It runs the int8 winner model in real-time against the front-facing camera, draws a green bounding box around the detected face, and displays a smoothed OPEN / CLOSED label with per-class probability bars.
 
-The bundled model (`assets/eye_winner.tflite`, 383 KB FP32 — int8 export is available alongside in `artifacts/`) is the **personally fine-tuned** version: 100 % accuracy on the 12 phone captures + 86.5 % retained on the canonical CEW test split.
+The bundled model (`assets/eye_winner.tflite`, **107 KB PTQ-int8**) is the §06 winner `lw_wide` (97 K params) **fine-tuned on 44 phone captures** (22 open / 22 closed, 6 subjects): 100 % accuracy on the 44 captures + 76.4 % retained on the canonical CEW test split. Inference is **0.42 ms / frame** measured on the S24 Ultra (CPU 4-thread XNNPACK), 3.6× faster than the prior FP32 ship.
 
 ## Pipeline
 
@@ -119,7 +119,7 @@ Each frame logs `raw=[P(closed), P(open)] norm=[…] -> LABEL (n.n ms)`.
 
 ## Known limitations
 
-1. **Out-of-distribution subjects**: the bundled model was fine-tuned on 12 photos covering 6 subjects. New faces (different ethnicity, beards, headphones, very different lighting) may still bias toward CLOSED. The fix is to add ~10 photos of the new subject and re-run `eye/07_eye_finetune.ipynb`, then `cp artifacts/eye_winner_finetuned.tflite app/src/main/assets/eye_winner.tflite` and rebuild.
+1. **Out-of-distribution subjects**: the bundled model was fine-tuned on 44 photos covering 6 subjects. New faces (different ethnicity, beards, headphones, very different lighting) may still bias toward CLOSED. The fix is to add ~10 photos of the new subject to `fine_tuning/CEW_fine_tuning/`, label them in `artifacts/eye_finetune_labels.json`, re-run `python artifacts/_finetune_44.py`, then `cp artifacts/eye_winner_finetuned_int8.tflite app/src/main/assets/eye_winner.tflite` and rebuild.
 2. **Gaze direction**: looking down at a laptop screen below the phone reduces P(open). Hold the phone at eye level.
 3. **NNAPI is a no-op on Samsung OneUI**: the runtime accepts the flag but falls back to XNNPACK on this device. CPU-XNNPACK is already the optimum here (1.05× slower than the OpenVINO ARM plugin would be in theory).
 

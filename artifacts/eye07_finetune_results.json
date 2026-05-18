@@ -1,0 +1,14 @@
+{
+  "n_finetune_samples": 44,
+  "n_open": 22,
+  "n_closed": 22,
+  "train_seconds": 4.213541269302368,
+  "final_train_acc": 0.9772727489471436,
+  "ft_acc_before_finetune_fp32": 0.5681818181818182,
+  "ft_acc_after_finetune_fp32": 1.0,
+  "cew_test_acc_after_finetune_fp32": 0.75,
+  "ft_acc_after_finetune_int8": 1.0,
+  "cew_test_acc_after_finetune_int8": 0.7637362637362637,
+  "fp32_tflite_size_kb": 383.0,
+  "int8_tflite_size_kb": 106.609375
+}

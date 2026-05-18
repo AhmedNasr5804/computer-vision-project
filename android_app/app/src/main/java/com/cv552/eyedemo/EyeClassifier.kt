@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Log
+import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil
 import java.io.File
@@ -12,15 +13,15 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
- * Wraps `assets/eye_winner.tflite` (the §06 winner — `lw_wide`).
+ * Wraps `assets/eye_winner.tflite` (the §06 winner — `lw_wide`, fine-tuned on 44
+ * phone captures, exported as PTQ-int8 for deployment).
  *
- * Model schema (verified by inspecting the .tflite on the workstation):
- *   - input  shape  (1, 64, 64, 1)
- *   - input  dtype  float32   (model is "weight-only" quantized)
- *   - output shape  (1, 2)
- *   - output dtype  float32   — softmax over [P(closed), P(open)]
+ * Auto-detects model dtype at init and branches input/output handling:
+ *   - FP32 path: float32 in [0,1], float32 softmax out
+ *   - INT8  path: int8 quantized via the model's input/output scale + zero_point
  *
  * Training preprocessing (from notebook eye/01 and eye/03):
  *   1. cv2.imread(path, IMREAD_GRAYSCALE)              -> grayscale (BT.601)
@@ -37,9 +38,17 @@ class EyeClassifier(context: Context) {
     private val inputW: Int
     private val inputH: Int
 
+    private val inputIsInt8: Boolean
+    private val outputIsInt8: Boolean
+    private val inScale: Float
+    private val inZeroPoint: Int
+    private val outScale: Float
+    private val outZeroPoint: Int
+
     // Reusable buffers (avoid GC pressure in the camera loop)
     private val inBuffer: ByteBuffer
-    private val outBuffer = Array(1) { FloatArray(2) }
+    // Output buffer: 2 bytes (int8) or 8 bytes (2 floats)
+    private val outBuffer: ByteBuffer
 
     // Pre-allocated scratch space for CLAHE
     private val grayBuf: IntArray
@@ -59,8 +68,22 @@ class EyeClassifier(context: Context) {
         val inShape = inTensor.shape() // expected [1, 64, 64, 1]
         inputH = inShape[1]
         inputW = inShape[2]
-        // 4 bytes per float
-        inBuffer = ByteBuffer.allocateDirect(inputW * inputH * 4).order(ByteOrder.nativeOrder())
+
+        inputIsInt8 = inTensor.dataType() == DataType.INT8
+        outputIsInt8 = outTensor.dataType() == DataType.INT8
+
+        val inQ = inTensor.quantizationParams()
+        val outQ = outTensor.quantizationParams()
+        inScale = inQ.scale
+        inZeroPoint = inQ.zeroPoint
+        outScale = outQ.scale
+        outZeroPoint = outQ.zeroPoint
+
+        val inBytes = inputW * inputH * if (inputIsInt8) 1 else 4
+        inBuffer = ByteBuffer.allocateDirect(inBytes).order(ByteOrder.nativeOrder())
+
+        val outBytes = 2 * if (outputIsInt8) 1 else 4
+        outBuffer = ByteBuffer.allocateDirect(outBytes).order(ByteOrder.nativeOrder())
 
         grayBuf = IntArray(inputW * inputH)
         claheBuf = IntArray(inputW * inputH)
@@ -70,7 +93,8 @@ class EyeClassifier(context: Context) {
         mapping = Array(tilesY) { Array(tilesX) { IntArray(256) } }
 
         Log.i(TAG, "Model loaded. input=(${inShape.joinToString()}) " +
-                "inDtype=${inTensor.dataType().name} outDtype=${outTensor.dataType().name}")
+                "inDtype=${inTensor.dataType().name} outDtype=${outTensor.dataType().name} " +
+                "inQ(scale=$inScale, zp=$inZeroPoint) outQ(scale=$outScale, zp=$outZeroPoint)")
     }
 
     fun inputSize() = Pair(inputW, inputH)
@@ -91,7 +115,6 @@ class EyeClassifier(context: Context) {
         val doSave = DEBUG_SAVE && debugDir != null && debugSaveCounter % DEBUG_SAVE_EVERY == 0
 
         // 2) BT.601 grayscale (matches OpenCV cv2.IMREAD_GRAYSCALE)
-        // Read all pixels in one call (much faster than per-pixel getPixel).
         val pixels = IntArray(inputW * inputH)
         resized.getPixels(pixels, 0, inputW, 0, 0, inputW, inputH)
         for (i in pixels.indices) {
@@ -102,13 +125,22 @@ class EyeClassifier(context: Context) {
             grayBuf[i] = (0.299f * r + 0.587f * g + 0.114f * b).toInt().coerceIn(0, 255)
         }
 
-        // 3) CLAHE (tile 8x8, clipLimit=2.0) — matches the OpenCV defaults used in training
+        // 3) CLAHE (tile 8x8, clipLimit=2.0)
         applyCLAHE(grayBuf, inputW, inputH, claheBuf)
 
-        // 4) write float32 input in [0, 1]
+        // 4) write quantized or float32 input
         inBuffer.rewind()
-        for (i in claheBuf.indices) {
-            inBuffer.putFloat(claheBuf[i] / 255f)
+        if (inputIsInt8) {
+            // q = round(x / scale + zero_point), clipped to [-128, 127]
+            for (i in claheBuf.indices) {
+                val xf = claheBuf[i] / 255f
+                val q = (xf / inScale + inZeroPoint).roundToInt().coerceIn(-128, 127)
+                inBuffer.put(q.toByte())
+            }
+        } else {
+            for (i in claheBuf.indices) {
+                inBuffer.putFloat(claheBuf[i] / 255f)
+            }
         }
         inBuffer.rewind()
 
@@ -117,11 +149,9 @@ class EyeClassifier(context: Context) {
                 val dir = debugDir!!
                 dir.mkdirs()
                 val stamp = System.currentTimeMillis()
-                // Save the (already-resized) face crop bitmap as the model sees it
                 FileOutputStream(File(dir, "crop_${stamp}.png")).use {
                     resized.compress(Bitmap.CompressFormat.PNG, 100, it)
                 }
-                // Save the post-CLAHE grayscale image
                 val claheBmp = Bitmap.createBitmap(inputW, inputH, Bitmap.Config.ARGB_8888)
                 val pix = IntArray(claheBuf.size) { i ->
                     val v = claheBuf[i]
@@ -139,19 +169,30 @@ class EyeClassifier(context: Context) {
         }
 
         // 5) inference
+        outBuffer.rewind()
         val t0 = System.nanoTime()
         interpreter.run(inBuffer, outBuffer)
         val tNs = System.nanoTime() - t0
 
-        val pClosedRaw = outBuffer[0][0]
-        val pOpenRaw = outBuffer[0][1]
+        // 6) read + dequantize output
+        outBuffer.rewind()
+        val pClosedRaw: Float
+        val pOpenRaw: Float
+        if (outputIsInt8) {
+            val q0 = outBuffer.get().toInt()
+            val q1 = outBuffer.get().toInt()
+            pClosedRaw = (q0 - outZeroPoint) * outScale
+            pOpenRaw = (q1 - outZeroPoint) * outScale
+        } else {
+            pClosedRaw = outBuffer.float
+            pOpenRaw = outBuffer.float
+        }
         val sum = (pClosedRaw + pOpenRaw).coerceAtLeast(1e-6f)
         val pClosed = pClosedRaw / sum
         val pOpen = pOpenRaw / sum
 
-        // Debug — logged at INFO so it shows in logcat -s EyeDemo:*
         if (DEBUG_LOG) {
-            Log.i(TAG, "raw=[%.4f, %.4f]  norm=[%.4f, %.4f]  -> %s (%.1f ms)".format(
+            Log.i(TAG, "raw=[%.4f, %.4f]  norm=[%.4f, %.4f]  -> %s (%.2f ms)".format(
                 pClosedRaw, pOpenRaw, pClosed, pOpen,
                 if (pOpen >= pClosed) "OPEN" else "CLOSED", tNs / 1e6
             ))
@@ -173,13 +214,10 @@ class EyeClassifier(context: Context) {
         val tilesX = w / TILE
         val tilesY = h / TILE
         val tileSize = TILE * TILE
-        // OpenCV: clipLimit is multiplied by tileSize/256 and floored, with a minimum of 1.
         val limit = max(1, (CLIP_LIMIT * tileSize / 256f).toInt())
 
-        // step 1+2+3: per-tile mapping
         for (ty in 0 until tilesY) {
             for (tx in 0 until tilesX) {
-                // histogram
                 for (i in 0 until 256) hist[i] = 0
                 val y0 = ty * TILE; val x0 = tx * TILE
                 for (y in y0 until y0 + TILE) {
@@ -188,7 +226,6 @@ class EyeClassifier(context: Context) {
                         hist[src[row + x]]++
                     }
                 }
-                // Two-pass clip+redistribute — matches OpenCV's behavior more closely
                 repeat(2) {
                     var excess = 0
                     for (i in 0 until 256) {
@@ -202,7 +239,6 @@ class EyeClassifier(context: Context) {
                         if (remainder > 0) { hist[i]++; remainder-- }
                     }
                 }
-                // CDF -> mapping
                 var cum = 0
                 val m = mapping[ty][tx]
                 for (i in 0 until 256) {
@@ -212,8 +248,6 @@ class EyeClassifier(context: Context) {
             }
         }
 
-        // step 3: bilinear interpolation across tiles
-        val half = TILE / 2f
         for (y in 0 until h) {
             val tyf = ((y + 0.5f) / TILE - 0.5f).coerceIn(0f, (tilesY - 1).toFloat())
             val ty0 = tyf.toInt()

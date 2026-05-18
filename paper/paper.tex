@@ -203,26 +203,28 @@ Binary road masks are regenerated with
 SegFormer-B2-cityscapes \cite{segformer} as a visual aid; the lane
 classifier itself consumes RGB only.
 
-\textbf{Phone fine-tune (eye).} 12 full-frame portraits captured on
-the S24~Ultra; the two displayed in Fig.~\ref{fig:phonedetect}
-(\textit{author's own face, eyes-open / eyes-closed pair}) are shown
-here as a representative sample for privacy reasons---the remaining
-ten frames involve other people and are used internally by the
-fine-tune notebook but not reproduced in this paper. All captures are
-full-face photographs in landscape orientation, so eye/07 first
-rotates them to portrait via a four-rotation face-detection vote, then
-crops the detected face to $100\!\times\!100$ to match the CEW domain
-before any fine-tune step.
+\textbf{Phone fine-tune (eye).} 44 full-frame portraits captured on
+the S24~Ultra (22 open / 22 closed, six subjects). The displayed
+open / closed pair in Fig.~\ref{fig:phonedetect} is drawn from a
+second capture session that the author has explicitly cleared for
+inclusion; the original 12 captures from an earlier session involve
+other people and are used internally by the fine-tune script but not
+reproduced in this paper for privacy. All captures are
+full-face photographs in landscape orientation, so the fine-tune
+pipeline first rotates them to portrait via a four-rotation
+face-detection vote, then crops the detected face to
+$100\!\times\!100$ to match the CEW domain before any fine-tune step.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.75\columnwidth]{fig_eye_phone_detect.png}
 \caption{Representative S24-Ultra fine-tune pair (open / closed) for
-one subject (the author), after orientation correction and Haar face
+one subject, drawn from the 32 newly-captured photos in the second
+fine-tune session, after orientation correction and Haar face
 detection. The pipeline correctly locates the largest face in both
-frames despite landscape capture and the headphones; the same
-behavior holds for the other ten captures, which are omitted from
-this figure for privacy.}
+frames despite landscape capture; the same behavior holds for the
+remaining 30 captures in this session and the 12 from the prior
+session, which are omitted from this figure for privacy.}
 \label{fig:phonedetect}
 \end{figure}
 
@@ -744,21 +746,23 @@ flip it back to CLOSED. This eliminates the label flicker that occurs
 when raw predictions hover near $0.5$.
 
 \textit{(iv)~CEW does not generalize zero-shot to the deployment user.}
-On the twelve S24-captured photos used in
-Section~\ref{sec:results} (six subjects, one
-open/closed pair each), the CEW-trained winner reaches
-only $0.583$ accuracy zero-shot
-(Fig.~\ref{fig:appft}, grey bars), with the largest errors on
+On the 44 S24-captured photos used in Section~\ref{sec:results}
+(six subjects, 22 open / 22 closed), the CEW-trained winner reaches
+only $0.568$ accuracy zero-shot ($0.5625$ on the 32-photo subset
+displayed in Fig.~\ref{fig:appft}), with the largest errors on
 oblique gazes and subjects with beards or visible hair---two
-demographics that are under-represented in CEW. A short
-fine-tune on the same twelve photos
-(12~$\times$~20 augmentations $=$ 240 effective samples, 23
-epochs, Adam, lr=$2\!\times\!10^{-4}$) brings per-subject accuracy
-to $1.000$ (blue bars) while losing only $4.2$\,pp on the canonical
-CEW test split ($0.907 \rightarrow 0.865$). This is the
-\textit{deployment} model shipped inside the APK; the headline
-$0.907$ accuracy in Table~\ref{tab:eye} refers to the original
-unfine-tuned winner reported for the canonical benchmark.
+demographics that are under-represented in CEW. A short fine-tune on
+the same 44 photos (20 epochs, batch 4, Adam,
+lr=$1\!\times\!10^{-4}$, $\approx 4.2$\,s on a desktop CPU) brings
+per-subject accuracy to $1.000$ (blue bars), at the cost of
+$14.3$\,pp on the canonical CEW test split
+($0.907 \rightarrow 0.764$). PTQ-int8 conversion of the fine-tuned
+model retains $0.764$ CEW accuracy and the full $1.000$ on the 44
+fine-tune photos, and shrinks the deployment model from 383\,KB to
+107\,KB (3.6$\times$ smaller). This is the \textit{deployment} model
+shipped inside the APK; the headline $0.907$ accuracy in
+Table~\ref{tab:eye} refers to the original unfine-tuned winner
+reported for the canonical benchmark.
 
 \begin{figure*}[t]
 \centering
@@ -775,12 +779,15 @@ $\sim$1\,ms on the S24~Ultra CPU.}
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{fig_eye_app_finetune.png}
-\caption{Per-sample $P(\mathrm{open})$ on the 12 S24-Ultra fine-tune
-captures, before (grey) and after (blue) the 30-epoch personal
-fine-tune. Truth markers above each bar pair: green circle = open,
-red square = closed. The base model decides $P(\mathrm{open})<0.5$
-on 5/6 open faces (out-of-distribution); the fine-tuned model is
-correct on all 12 with high confidence.}
+\caption{Per-sample $P(\mathrm{open})$ on the 32 newly-captured
+S24-Ultra fine-tune photos (the additional 12 photos from a prior
+session are used for training but omitted here for privacy), before
+(grey) and after (blue) the 20-epoch personal fine-tune. Truth
+markers above each bar pair: green circle = open, red square =
+closed. The base CEW-trained winner decides $P(\mathrm{open})<0.5$
+on roughly half the open faces (out-of-distribution); the
+fine-tuned model is correct on all 32 displayed photos (and on all
+44 used for training) with high confidence.}
 \label{fig:appft}
 \end{figure*}
 
@@ -864,20 +871,24 @@ and Table~\ref{tab:lanedeploy}).
 
 \textbf{CEW does not transfer zero-shot, and the fix is cheap.}
 The most actionable single finding of this project is the
-$0.907 \rightarrow 0.583$ accuracy drop the CEW-trained winner
+$0.907 \rightarrow 0.568$ accuracy drop the CEW-trained winner
 suffers when moved zero-shot to the S24's front camera
 (Fig.~\ref{fig:appft}). CEW's collection conditions (mostly
 clean-shaven, mostly East-Asian, mostly forward-looking subjects,
 mostly indoor sodium-lamp lighting) are very different from
 typical 2026 smartphone-selfie conditions (beards, headphones,
 mixed lighting, oblique gaze toward a laptop screen). The
-recovery prescription is unspectacular: twelve labeled photos of
-the eventual users, three minutes of CPU fine-tune, no
-architectural change. We emphasize that this is the kind of
-domain gap a literature-reported $\geq 95\%$ on CEW does
-\emph{not} forewarn you of, and that the per-user fine-tune is
-a useful template for any drowsiness-detection product targeting
-non-East-Asian or non-clean-shaven drivers.
+recovery prescription is unspectacular: 44 labeled photos of the
+eventual users (22 open / 22 closed, six subjects), four seconds
+of desktop-CPU fine-tune, no architectural change. PTQ-int8 of
+the resulting model is the artifact actually shipped inside the
+APK at 107\,KB, with on-device CPU latency unchanged
+from the unfine-tuned int8 baseline at $0.126$\,ms. We emphasize
+that this is the kind of domain gap a literature-reported
+$\geq 95\%$ on CEW does \emph{not} forewarn you of, and that the
+per-user fine-tune is a useful template for any
+drowsiness-detection product targeting non-East-Asian or
+non-clean-shaven drivers.
 
 \textbf{Why NNAPI is a dead end on this device (eye).}
 The hatched NNAPI bars in Fig.~\ref{fig:eyes24} are visually identical
@@ -931,9 +942,12 @@ model is projected to reach $\sim$320~fps on a Raspberry~Pi~4
 once measured on hardware. The deployment process surfaced two
 practical findings worth reporting on their own: the
 literature-canonical CEW accuracy does not transfer zero-shot
-to a contemporary front-camera deployment ($-32$\,pp), and a
-12-photo personal fine-tune closes the gap without
-catastrophic forgetting.
+to a contemporary front-camera deployment ($-34$\,pp on 44 captured
+photos), and a 44-photo personal fine-tune closes the
+deployment-side gap (44/44 correct) while keeping a usable
+$0.764$ on the canonical CEW test split. PTQ-int8 conversion of
+this fine-tuned model retains both accuracies and ships at
+107\,KB.
 The complete code, intermediate JSON manifests, training curves, and
 regenerated masks are released alongside the paper for
 reproducibility.

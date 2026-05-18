@@ -1,0 +1,6 @@
+{
+  "new32_zero_shot_acc": 0.5625,
+  "new32_after_finetune_acc": 1.0,
+  "new32_n_open": 16,
+  "new32_n_closed": 16
+}
