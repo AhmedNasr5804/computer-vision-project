@@ -35,7 +35,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var classifier: EyeClassifier
+    private lateinit var firebase: FirebaseClient
     private val smoother = Smoother(alpha = 0.25f, high = 0.62f, low = 0.38f)
+    // Running EMA of frame rate (Hz). Updated whenever the analyzer fires.
+    private var fpsEma: Double = 0.0
+    private var lastFrameNs: Long = 0L
     private val faceDetector by lazy {
         FaceDetection.getClient(
             FaceDetectorOptions.Builder()
@@ -66,6 +70,7 @@ class MainActivity : AppCompatActivity() {
         // Tell classifier where to dump debug PNGs (app-private external dir,
         // pullable with `adb pull /sdcard/Android/data/com.cv552.eyedemo/files/debug`)
         classifier.setDebugDir(java.io.File(getExternalFilesDir(null), "debug"))
+        firebase = FirebaseClient(this)
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         val (w, h) = classifier.inputSize()
@@ -124,11 +129,21 @@ class MainActivity : AppCompatActivity() {
             val input = InputImage.fromMediaImage(mediaImage, rotation)
 
             val pipelineStart = System.nanoTime()
+            // Update running FPS estimate from wall-clock between analyzer calls.
+            if (lastFrameNs != 0L) {
+                val dt = (pipelineStart - lastFrameNs) / 1e9
+                if (dt > 0.0) {
+                    val inst = 1.0 / dt
+                    fpsEma = if (fpsEma == 0.0) inst else 0.9 * fpsEma + 0.1 * inst
+                }
+            }
+            lastFrameNs = pipelineStart
 
             faceDetector.process(input)
                 .addOnSuccessListener { faces ->
                     if (faces.isEmpty()) {
                         smoother.reset()
+                        firebase.push("UNKNOWN", 0f, 0f, 0.0, fpsEma)
                         runOnUiThread {
                             binding.overlayView.setBoxNormalized(null)
                             binding.labelText.text = getString(R.string.waiting_face)
@@ -178,6 +193,16 @@ class MainActivity : AppCompatActivity() {
 
                     // Temporal EMA smoothing + Schmitt-trigger hysteresis on the OPEN probability
                     val smoothed = smoother.update(result.pOpen)
+
+                    // Push the smoothed observation to Firebase for the Pi to read.
+                    // The client throttles internally to ~10 Hz; safe to call every frame.
+                    firebase.push(
+                        state = smoothed.label,
+                        pOpen = smoothed.sOpen,
+                        pClosed = smoothed.sClosed,
+                        latencyMs = result.latencyMs,
+                        fps = fpsEma,
+                    )
 
                     val normRect = RectF(
                         left.toFloat() / W,

@@ -36,6 +36,54 @@ deployment/
 
 **On the Raspberry Pi 4B (lane)**: `cd deployment/lane`, install prerequisites (`tflite-runtime`, `picamera2`, `python3-opencv` — full list in `lane/README.md`), then start `claude code` in that directory and paste the prompt from `lane/README.md`. Claude Code will write `lane_live.py` for you and start the live demo.
 
+## Subscribing to the live eye state from the Pi
+
+The Android app publishes its smoothed eye-state predictions to the Firebase
+Realtime Database at `https://lab1-f7c43-default-rtdb.firebaseio.com` under
+`/eye_monitor`. Field schema is documented in `android_app/README.md`.
+
+To consume the feed from the Pi (or any Python host), install
+`firebase-admin` or use a plain HTTP poll. The HTTP-poll path needs no
+credentials and works under the open test rules:
+
+```python
+import time, requests
+URL = "https://lab1-f7c43-default-rtdb.firebaseio.com/eye_monitor.json"
+
+while True:
+    try:
+        data = requests.get(URL, timeout=2).json()  # dict or None
+        if data:
+            print(f"{data['state']:7}  "
+                  f"P(open)={data['p_open']:.2f}  "
+                  f"fps={data['fps']:.1f}  "
+                  f"age_ms={int(time.time()*1000) - data['timestamp']}")
+    except Exception as e:
+        print(f"poll failed: {e}")
+    time.sleep(0.1)   # 10 Hz, matches the publisher
+```
+
+For an event-driven subscription (a callback every time `eye_monitor`
+changes), use the Firebase REST event-stream endpoint with the `Accept:
+text/event-stream` header:
+
+```python
+import requests, json
+URL = "https://lab1-f7c43-default-rtdb.firebaseio.com/eye_monitor.json"
+r = requests.get(URL, headers={"Accept": "text/event-stream"}, stream=True)
+for line in r.iter_lines(decode_unicode=True):
+    if line.startswith("data:"):
+        event = json.loads(line[5:].strip())
+        if event["data"] is not None:
+            print(event["data"])
+```
+
+Either path is what the `lane_live.py` script (built by Claude Code via the
+prompt in `deployment/lane/README.md`) can use to react to the driver's eye
+state — e.g. drop confidence on the lane prediction when the driver is
+flagged CLOSED, or write that state into `car_telemetry/latest/eye_state`
+alongside the existing telemetry.
+
 ## Reproducing the models from scratch
 
 Every model in this folder is reproducible from the repo. Scripts are in `artifacts/`:

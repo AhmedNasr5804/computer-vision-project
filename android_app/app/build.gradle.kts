@@ -60,4 +60,10 @@ dependencies {
     // TensorFlow Lite
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+
+    // Firebase Realtime Database — used to publish live eye state to lab1-f7c43
+    // so the Raspberry Pi (or any other subscriber) can read it. Initialized
+    // programmatically in FirebaseClient.kt; no google-services.json required.
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-database-ktx")
 }

@@ -26,6 +26,44 @@ Front camera ─► CameraX ImageAnalysis (YUV → RGB upright)
 
 End-to-end latency on the S24 Ultra: ~1 ms median per frame (ML Kit face detection dominates; classifier itself is 0.13 ms).
 
+## Firebase Realtime Database publishing
+
+The smoothed eye state is published continuously to the `eye_monitor` node of the Firebase Realtime Database at `https://lab1-f7c43-default-rtdb.firebaseio.com` so that the Raspberry Pi (or any other subscriber) can read it. The publisher is wired in `FirebaseClient.kt`; init is programmatic via `FirebaseOptions.Builder` so the project compiles without `google-services.json`.
+
+Schema written to `eye_monitor/`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `state` | string | `"OPEN"` / `"CLOSED"` / `"UNKNOWN"` (after EMA + Schmitt-trigger smoothing) |
+| `p_open` | double | smoothed `P(open)` in [0, 1] |
+| `p_closed` | double | smoothed `P(closed)` in [0, 1] |
+| `latency_ms` | double | most recent single-frame inference time |
+| `fps` | double | running EMA of analyzer frame rate |
+| `timestamp` | long | server time, ms since epoch (`ServerValue.TIMESTAMP`) |
+| `device_id` | string | `<Build.MODEL>_<8-char ANDROID_ID>` (e.g. `SM-S928B_fd59ef0a`) |
+
+Writes are throttled to **10 Hz** (one push per 100 ms) inside `FirebaseClient.push()` so a 30-fps camera analyzer doesn't flood the database.
+
+### Verify from a shell on any host
+
+```bash
+curl -s https://lab1-f7c43-default-rtdb.firebaseio.com/eye_monitor.json
+# {"device_id":"SM-S928B_fd59ef0a","fps":30.07,"latency_ms":1.70,
+#  "p_closed":0.67,"p_open":0.33,"state":"CLOSED","timestamp":1779147618172}
+```
+
+Re-run the command repeatedly and watch `state` / `p_open` change as the camera sees blinks. The `timestamp` is server-stamped so it is monotonic regardless of phone clock drift.
+
+### Database security rules
+
+The integration assumes the RTDB rules allow unauthenticated reads/writes on `/eye_monitor`. The simplest "test mode" rule set works fine for a demo:
+
+```json
+{ "rules": { ".read": true, ".write": true } }
+```
+
+For a real deployment, restrict `/eye_monitor` to a service account and pass an ID token via `FirebaseAuth.signInWithCustomToken(...)` in `FirebaseClient.init`.
+
 ## Requirements
 
 | | |
