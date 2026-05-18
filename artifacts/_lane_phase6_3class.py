@@ -32,6 +32,8 @@ H = W = 128; N_CLASSES = 3
 # 1) Generate 3-class masks (median-x bisection)
 # --------------------------------------------------------------------------
 def make_3class_mask(bm):
+    """Returns a uint8 mask with viewable values: 0=bg, 127=lane-left, 255=lane-right.
+    The training loader maps these back to class indices 0/1/2 via a LUT."""
     h, w = bm.shape
     lane = bm > 127
     if lane.sum() == 0:
@@ -41,8 +43,8 @@ def make_3class_mask(bm):
     out = np.zeros((h, w), dtype=np.uint8)
     left  = lane & (np.arange(w)[None, :] < cx)
     right = lane & ~left
-    out[left]  = 1
-    out[right] = 2
+    out[left]  = 127
+    out[right] = 255
     return out
 
 bin_paths = sorted(MK.glob("*.png"))
@@ -91,12 +93,19 @@ def load_split(paths, name):
     Y = np.zeros((n, H, W, N_CLASSES), dtype=np.float32)
     t0 = time.time()
     eye = np.eye(N_CLASSES, dtype=np.float32)
+    # LUT: viewable pixel value -> class index. Masks are stored as
+    # 0/127/255 so they can be opened in any image viewer; the model
+    # internally needs 0/1/2 as class indices.
+    LUT = np.zeros(256, dtype=np.uint8)
+    LUT[64:192] = 1   # anything around 127
+    LUT[192:] = 2     # anything around 255
     for i, p in enumerate(paths):
         img = cv2.cvtColor(cv2.imread(str(p)), cv2.COLOR_BGR2RGB)
         img = cv2.resize(img, (W, H), interpolation=cv2.INTER_AREA)
         X[i] = img.astype(np.float32) / 255.0
-        mask = cv2.imread(str(M3 / (p.stem + ".png")), cv2.IMREAD_GRAYSCALE)
-        mask = cv2.resize(mask, (W, H), interpolation=cv2.INTER_NEAREST)
+        mask_view = cv2.imread(str(M3 / (p.stem + ".png")), cv2.IMREAD_GRAYSCALE)
+        mask_view = cv2.resize(mask_view, (W, H), interpolation=cv2.INTER_NEAREST)
+        mask = LUT[mask_view]
         Y[i] = eye[mask]
         if (i + 1) % 2000 == 0:
             log(f"  loaded {name} {i+1}/{n} (elapsed {time.time()-t0:.0f}s)")
