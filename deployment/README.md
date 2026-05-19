@@ -2,11 +2,12 @@
 
 Ready-to-ship int8 models for both pipelines, with usage guides and a paste-able Claude Code prompt for the Raspberry Pi side.
 
-| Pipeline | Target | Model file | Size | Reference |
+| Pipeline | Target | Artifact | Size | Reference |
 |---|---|---|---|---|
 | **Eye** (open / closed) | Samsung S24 Ultra (Android) — also runs on any tflite-runtime host | `eye/eye_winner.tflite` | 107 KB | `paper/paper.tex` §4.7 |
 | **Lane** (bg / lane-left / lane-right) | Raspberry Pi 4B + Pi Camera v2 | `lane/lane_truncated_3class.tflite` | 27.0 KB | `paper/paper.tex` §4.6, §4.7 |
 | **Lane** (binary lane mask) | Raspberry Pi 4B + Pi Camera v2 (simpler downstream) | `lane/lane_truncated_binary.tflite` | 26.7 KB | `paper/paper.tex` §4.6 |
+| **Eye → PIC UART bridge** | Raspberry Pi 4B → PIC16 microcontroller | `pi/eye_to_pic.py` | 6 KB Python script | this file + `pi/README.md` |
 
 All three were post-training int8 quantized with a 200-image representative dataset (see `artifacts/_lane_phase5_ptq.py` / `artifacts/_finetune_44.py`). Per-model accuracy deltas vs the FP32 source are sub-pp:
 
@@ -24,10 +25,14 @@ deployment/
 ├── eye/
 │   ├── README.md                 <- model specs + integration notes
 │   └── eye_winner.tflite         <- 107 KB int8
-└── lane/
-    ├── README.md                 <- model specs + paste-able Claude Code prompt for RPi
-    ├── lane_truncated_3class.tflite   <- 27.0 KB int8 (primary)
-    └── lane_truncated_binary.tflite   <- 26.7 KB int8 (fallback)
+├── lane/
+│   ├── README.md                 <- model specs + paste-able Claude Code prompt for RPi
+│   ├── lane_truncated_3class.tflite   <- 27.0 KB int8 (primary)
+│   └── lane_truncated_binary.tflite   <- 26.7 KB int8 (fallback)
+└── pi/
+    ├── README.md                 <- wiring, install, systemd auto-start, failure modes
+    └── eye_to_pic.py             <- Firebase-eye -> PIC UART bridge
+                                     (E = drive, C = stop, fail-safe to C)
 ```
 
 ## Quick start
