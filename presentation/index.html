@@ -1,0 +1,1361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Edge-Deployable Vision for Driver Assistance · CIE-552</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" id="theme">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-deep:#040714;
+  --bg-mid:#0b1230;
+  --bg-panel:rgba(18,28,68,.6);
+  --cyan:#00e5ff;
+  --cyan-soft:#7af2ff;
+  --magenta:#ff2bd6;
+  --green:#4cff7f;
+  --amber:#ffd166;
+  --text:#e8edff;
+  --text-dim:#8e9bc4;
+  --grid:rgba(0,229,255,.06);
+  --grid2:rgba(0,229,255,.12);
+}
+html,body{background:var(--bg-deep);color:var(--text);}
+.reveal{font-family:'Inter','system-ui',sans-serif;font-size:30px;}
+.reveal .slides{text-align:left;}
+.reveal .slides section{height:100%;}
+.reveal h1,.reveal h2,.reveal h3{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;letter-spacing:-.015em;
+  color:var(--cyan);text-transform:none;
+  text-shadow:0 0 24px rgba(0,229,255,.25);
+}
+.reveal h1{font-size:2.4em;line-height:1.04;}
+.reveal h2{font-size:1.6em;line-height:1.1;margin-bottom:.4em;}
+.reveal h3{font-size:1.1em;color:var(--cyan-soft);}
+.reveal p,.reveal li{color:var(--text);font-size:.78em;line-height:1.42;}
+.reveal small,.reveal .small{font-size:.62em;color:var(--text-dim);}
+.reveal strong{color:var(--cyan-soft);font-weight:600;}
+.reveal em{color:var(--amber);font-style:normal;}
+.reveal a{color:var(--cyan);text-decoration:none;border-bottom:1px dashed var(--cyan);}
+.reveal ul{list-style:none;padding-left:0;}
+.reveal ul li{padding-left:1.2em;position:relative;margin:.25em 0;}
+.reveal ul li::before{content:"\25B8";color:var(--cyan);position:absolute;left:0;top:0;text-shadow:0 0 8px rgba(0,229,255,.6);}
+/* Global background */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(0,229,255,.10), transparent 50%),
+    radial-gradient(ellipse at 92% 95%, rgba(255,43,214,.08), transparent 50%),
+    linear-gradient(180deg, #040714 0%, #06091a 100%);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.85;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    linear-gradient(var(--grid2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid2) 1px, transparent 1px);
+  background-size: 40px 40px, 40px 40px, 200px 200px, 200px 200px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,.25));
+}
+.reveal .slides>section{padding:.4em 1.4em;}
+/* Section divider */
+.divider{
+  height:100%;display:flex;flex-direction:column;justify-content:center;
+}
+.divider .num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:1em;color:var(--magenta);letter-spacing:.5em;
+  text-shadow:0 0 16px rgba(255,43,214,.4);
+  margin-bottom:.25em;
+}
+.divider h1{font-size:3em;margin:0;}
+.divider .blurb{font-size:.72em;color:var(--text-dim);margin-top:.6em;max-width:30em;}
+.divider::after{
+  content:"";display:block;width:5em;height:3px;margin-top:1em;
+  background:linear-gradient(90deg, var(--cyan), transparent);
+  box-shadow:0 0 16px var(--cyan);
+}
+/* Title bar (per-slide eyebrow) */
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:.55em;
+  color:var(--magenta);letter-spacing:.25em;text-transform:uppercase;
+  margin-bottom:.4em;text-shadow:0 0 8px rgba(255,43,214,.4);
+}
+/* Panels / glass */
+.panel{
+  background:var(--bg-panel);backdrop-filter:blur(12px);
+  border:1px solid rgba(0,229,255,.18);border-radius:10px;
+  padding:.9em 1.1em;box-shadow:0 0 40px rgba(0,229,255,.06) inset, 0 2px 24px rgba(0,0,0,.4);
+}
+.panel.magenta{border-color:rgba(255,43,214,.25);}
+.panel.green{border-color:rgba(76,255,127,.28);}
+.panel.amber{border-color:rgba(255,209,102,.3);}
+/* Code-style */
+.mono,.reveal code,.reveal pre{font-family:'JetBrains Mono',monospace;}
+.reveal pre{
+  background:rgba(4,7,20,.85);border-left:3px solid var(--cyan);
+  border-radius:6px;font-size:.55em;padding:.7em 1em;
+  box-shadow:0 0 30px rgba(0,229,255,.08) inset;
+}
+.reveal pre code{color:#cfe9ff;}
+/* Big numbers / metrics */
+.metric{font-family:'JetBrains Mono',monospace;font-size:2.4em;font-weight:700;
+  color:var(--cyan);text-shadow:0 0 28px rgba(0,229,255,.4);line-height:1;}
+.metric .unit{font-size:.45em;color:var(--text-dim);font-weight:400;letter-spacing:.05em;}
+.metric.magenta{color:var(--magenta);text-shadow:0 0 28px rgba(255,43,214,.4);}
+.metric.green{color:var(--green);text-shadow:0 0 28px rgba(76,255,127,.4);}
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1em;}
+.metric-row .panel{padding:.7em 1em;}
+.metric-row .lbl{font-size:.55em;color:var(--text-dim);text-transform:uppercase;letter-spacing:.15em;margin-top:.2em;}
+/* Two-column */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.1em;}
+.two-col.lopsided{grid-template-columns:1.4fr 1fr;}
+.two-col.right-wide{grid-template-columns:1fr 1.4fr;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:.8em;}
+/* Tables */
+.reveal table{border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:.55em;width:100%;}
+.reveal table th{background:rgba(0,229,255,.08);color:var(--cyan);
+  border-bottom:2px solid var(--cyan);text-align:left;padding:.45em .8em;
+  text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+.reveal table td{border-bottom:1px solid rgba(154,164,196,.18);padding:.4em .8em;}
+.reveal table td.hi{color:var(--cyan-soft);font-weight:600;}
+.reveal table tr:hover td{background:rgba(0,229,255,.03);}
+/* Image presentation */
+.reveal img{max-width:100%;max-height:62vh;border-radius:8px;
+  border:1px solid rgba(0,229,255,.18);background:#fff;
+  box-shadow:0 0 36px rgba(0,229,255,.10);}
+.reveal img.no-bg{background:transparent;border:none;box-shadow:none;}
+.imgcap{font-size:.55em;color:var(--text-dim);margin-top:.3em;}
+/* Block diagrams */
+.flow{font-family:'JetBrains Mono',monospace;font-size:.62em;line-height:1.55;
+  background:rgba(4,7,20,.7);border:1px dashed rgba(0,229,255,.3);
+  border-radius:8px;padding:.8em 1em;white-space:pre;color:var(--cyan-soft);}
+/* Tag chips */
+.chip{display:inline-block;padding:.18em .65em;margin:.1em .15em .1em 0;
+  font-family:'JetBrains Mono',monospace;font-size:.5em;
+  border:1px solid rgba(0,229,255,.4);border-radius:999px;
+  color:var(--cyan);background:rgba(0,229,255,.05);letter-spacing:.05em;}
+.chip.m{border-color:rgba(255,43,214,.5);color:var(--magenta);background:rgba(255,43,214,.05);}
+.chip.g{border-color:rgba(76,255,127,.5);color:var(--green);background:rgba(76,255,127,.05);}
+.chip.a{border-color:rgba(255,209,102,.5);color:var(--amber);background:rgba(255,209,102,.05);}
+/* Slide footer */
+.reveal .slides::after{
+  content:"CIE-552  ·  Edge-Deployable Vision";
+  position:fixed;left:1.2em;bottom:.8em;font-family:'JetBrains Mono',monospace;
+  font-size:.45em;color:rgba(154,164,196,.4);letter-spacing:.2em;text-transform:uppercase;
+  z-index:30;pointer-events:none;
+}
+.reveal .progress{color:var(--cyan);height:3px;}
+.reveal .controls{color:var(--cyan);}
+/* Take-away callout */
+.takeaway{
+  border-left:3px solid var(--cyan);
+  background:linear-gradient(90deg, rgba(0,229,255,.07), transparent);
+  padding:.55em 1em;border-radius:0 6px 6px 0;font-size:.78em;margin-top:.5em;
+}
+.takeaway::before{content:"\25C6  ";color:var(--cyan);font-weight:700;}
+.takeaway.amber{border-left-color:var(--amber);
+  background:linear-gradient(90deg, rgba(255,209,102,.08), transparent);}
+.takeaway.amber::before{color:var(--amber);}
+.takeaway.magenta{border-left-color:var(--magenta);
+  background:linear-gradient(90deg, rgba(255,43,214,.07), transparent);}
+.takeaway.magenta::before{color:var(--magenta);}
+/* Inline KBD-ish */
+.tok{font-family:'JetBrains Mono',monospace;padding:0 .35em;border-radius:3px;
+  background:rgba(0,229,255,.08);color:var(--cyan-soft);font-size:.85em;}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- ================================================================= -->
+<!-- TITLE                                                              -->
+<!-- ================================================================= -->
+<section data-state="hero">
+  <div class="divider">
+    <div class="num">CIE-552 · 2026</div>
+    <h1>Edge-Deployable Vision<br>for Driver Assistance</h1>
+    <div class="blurb">
+      Two complete computer-vision pipelines, end-to-end. <em>Eye-state</em>
+      on a Samsung Galaxy S24 Ultra. <em>Lane segmentation</em> on a Raspberry
+      Pi 4. Live, quantized, reproducible.
+    </div>
+    <div style="margin-top:2em;font-family:'JetBrains Mono',monospace;font-size:.6em;color:var(--text-dim);">
+      Ahmed Mohamed Elsaid · 202200294 &nbsp;·&nbsp; Abdelhady Mohamed · 202201172<br>
+      Zewail City of Science, Technology and Innovation
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Section 00 · The Stack</div>
+  <h2>One project, two embedded pipelines</h2>
+  <div class="two-col" style="margin-top:.6em;">
+    <div class="panel">
+      <h3 style="color:var(--cyan);">Pipeline A &nbsp;<span style="color:var(--text-dim);font-size:.6em;">Eye-state</span></h3>
+      <p><strong>Target:</strong> Samsung Galaxy S24 Ultra (Snapdragon 8 Gen 3 + Hexagon NPU + Adreno 750)</p>
+      <p><strong>Task:</strong> binary classification <span class="tok">open</span> / <span class="tok">closed</span> from a 64&times;64 grayscale face crop.</p>
+      <p><strong>Source:</strong> Closed-Eyes-in-the-Wild (2 423 cropped faces) + 44 author-captured S24 selfies.</p>
+      <p><strong>Ships:</strong> 107 KB int8 TFLite inside a Kotlin/CameraX Android app.</p>
+    </div>
+    <div class="panel magenta">
+      <h3 style="color:var(--magenta);">Pipeline B &nbsp;<span style="color:var(--text-dim);font-size:.6em;">Lane segmentation</span></h3>
+      <p><strong>Target:</strong> Raspberry Pi 4 Model B + Pi Camera v2 (ARM Cortex-A72, no NPU).</p>
+      <p><strong>Task:</strong> per-pixel three-class softmax over 128&times;128 RGB <span class="tok">bg</span> / <span class="tok">left</span> / <span class="tok">right</span>.</p>
+      <p><strong>Source:</strong> TuSimple (3 626 highway frames) + 10 500 Pi-rig frames with regenerated supervision.</p>
+      <p><strong>Ships:</strong> 27 KB int8 TFLite + Pi&rarr;PIC UART bridge through Firebase.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Section 00 · Talk Map</div>
+  <h2>What this deck covers</h2>
+  <div class="three-col">
+    <div class="panel">
+      <h3>1. EDA</h3>
+      <p class="small">Datasets, splits, class balance, sanity checks. Every panel that touches the fine-tune set respects an explicit privacy filter.</p>
+    </div>
+    <div class="panel">
+      <h3>2. Architectures</h3>
+      <p class="small">Classical, custom CNN, transfer learning, lightweight. Per-layer rationale, parameter counts, why each design choice.</p>
+    </div>
+    <div class="panel">
+      <h3>3. Results</h3>
+      <p class="small">Training curves, confusion matrices, ROC, robustness, failure galleries. Every figure annotated.</p>
+    </div>
+    <div class="panel">
+      <h3>4. Experiments</h3>
+      <p class="small">A: augmentation. B: color space. C: distortion robustness. D: lightweight design. Plus the sanity overfit audit.</p>
+    </div>
+    <div class="panel">
+      <h3>5. Fine-tune + Selection</h3>
+      <p class="small">Six-criterion weighted score with a Pareto check. Eye 44-photo fine-tune. Lane mask regen + truncated U-Net.</p>
+    </div>
+    <div class="panel">
+      <h3>6. Deployment</h3>
+      <p class="small">PTQ-int8, S24 Ultra benchmarks, live Android app, RPi artifact, Firebase RTDB, Pi&rarr;PIC UART bridge.</p>
+    </div>
+    <div class="panel amber" style="grid-column:span 3;">
+      <h3>7. Key insights &nbsp;<span style="color:var(--text-dim);font-size:.55em;">the four things that generalize beyond this project</span></h3>
+      <p class="small">Lightweight wins at small N · CEW does not transfer zero-shot · Cityscapes SegFormer is the wrong tool for a tape-on-fabric test bench · Depth hurts on a high-contrast domain.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================= -->
+<!-- SECTION 1 - EDA                                                    -->
+<!-- ================================================================= -->
+<section><div class="divider">
+  <div class="num">01</div>
+  <h1>Exploratory Data Analysis</h1>
+  <div class="blurb">Four sources, two pipelines. Class balance, mask quality, splits, and privacy-respecting visualizations.</div>
+</div></section>
+
+<section>
+  <div class="eyebrow">01 · Dataset Inventory</div>
+  <h2>Four sources, four roles</h2>
+  <table>
+    <thead><tr><th>Source</th><th>Count</th><th>Native size</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td class="hi">CEW cropped</td><td>2 423</td><td>100&times;100</td><td>Train / val / test for eye pipeline</td></tr>
+      <tr><td>CEW full-resolution</td><td>1 192</td><td>~91&times;91</td><td>Cross-resolution robustness check</td></tr>
+      <tr><td class="hi">TuSimple highway</td><td>3 626</td><td>1280&times;720</td><td>Train / val / test for the canonical lane track</td></tr>
+      <tr><td>TuSimple polylines</td><td>3 JSON</td><td>—</td><td>Direction labels via curvature bucketing</td></tr>
+      <tr><td class="hi">Pi-camera rig</td><td>10 500</td><td>1280&times;720</td><td>Pi-domain fine-tune + segmentation supervision</td></tr>
+      <tr><td>Pi masks (SegFormer)</td><td>10 500</td><td>1280&times;720</td><td>&#10006; broken supervision &mdash; replaced (Section 6)</td></tr>
+      <tr><td class="hi">Pi masks (Otsu, this work)</td><td>10 500</td><td>1280&times;720</td><td>&#10004; classical regenerated supervision used for training</td></tr>
+      <tr><td>S24 Ultra fine-tune</td><td>44</td><td>9248&times;6936</td><td>Per-user eye fine-tune (32 displayable + 12 private)</td></tr>
+    </tbody>
+  </table>
+  <div class="takeaway">An eight-panel <strong>sanity grid</strong> is rendered at the head of every notebook (next slide) — guards against path / encoding / orientation bugs creeping in across reruns.</div>
+</section>
+
+<section>
+  <div class="eyebrow">01 · Sanity Grid</div>
+  <h2>Eight-panel dataset sanity check</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <p class="small">Top row, left&rarr;right: <strong>CEW closed</strong> (cropped), <strong>CEW open</strong> (cropped), <strong>CEW full-resolution</strong>, <strong>S24-Ultra fine-tune sample</strong>.</p>
+      <p class="small">Bottom row: <strong>TuSimple frame</strong>, <strong>TuSimple lane mask</strong>, <strong>Pi-camera frame</strong>, <strong>SegFormer mask</strong> &mdash; the bottom-right panel is the broken supervision signal that motivated the Pi-pipeline rebuild in Section 6.</p>
+      <div class="takeaway amber">The Pi panel is visibly a <em>test-bench</em>: dark road on cream fabric. Cityscapes priors do not transfer to this domain &mdash; visible in the near-empty SegFormer mask beside it.</div>
+    </div>
+    <div><img src="assets/fig_data_samples.png" alt="dataset sanity grid"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">01 · CEW</div>
+  <h2>Closed Eyes in the Wild</h2>
+  <div class="metric-row">
+    <div class="panel"><div class="metric">2 423</div><div class="lbl">Total cropped faces</div></div>
+    <div class="panel"><div class="metric green">1 192</div><div class="lbl">Eyes closed</div></div>
+    <div class="panel"><div class="metric magenta">1 231</div><div class="lbl">Eyes open</div></div>
+    <div class="panel"><div class="metric">49 / 51</div><div class="lbl">Class balance %</div></div>
+  </div>
+  <div class="panel" style="margin-top:.5em;">
+    <h3>Composition</h3>
+    <ul>
+      <li><strong>Image size:</strong> 100&times;100 RGB JPEG, mostly indoor sodium-lamp lighting.</li>
+      <li><strong>Demographics:</strong> heavily East-Asian, predominantly clean-shaven, mostly forward-looking subjects.</li>
+      <li><strong>Annotation:</strong> binary at the file-folder level (<span class="tok">ClosedFace/</span> vs <span class="tok">OpenFace/</span>), plus per-image eye coordinates in two TXT manifests.</li>
+      <li><strong>Split:</strong> deterministic stratified 70 / 15 / 15 persisted to <span class="tok">artifacts/eye_split.json</span> &mdash; every notebook reads this file verbatim.</li>
+    </ul>
+  </div>
+  <div class="takeaway magenta">The dataset is balanced so no rebalancing is needed during training. The narrow demographic window <em>is</em> the entire story of why the deployed model needs per-user fine-tuning (Section 6).</div>
+</section>
+
+<section>
+  <div class="eyebrow">01 · TuSimple</div>
+  <h2>TuSimple highway frames</h2>
+  <div class="two-col">
+    <div class="panel">
+      <h3>Counts &amp; metadata</h3>
+      <div class="metric-row" style="grid-template-columns:1fr 1fr;">
+        <div><div class="metric">3 626</div><div class="lbl">frames</div></div>
+        <div><div class="metric">3</div><div class="lbl">JSON manifests</div></div>
+      </div>
+      <ul style="margin-top:.5em;">
+        <li>Native <strong>1280&times;720</strong> RGB, public US-highway footage.</li>
+        <li>Each frame's lanes are given as <em>per-row x-coordinates</em>; the JSON encodes up to four lanes plus the row-sample y-grid.</li>
+        <li>Direction labels are <strong>derived</strong>: a quadratic <span class="tok">x = ay&sup2; + by + c</span> is fit to the two ego-lane polylines; the average curvature coefficient <em>a</em> is bucketed at the 33rd / 67th percentile (<span class="tok">&tau; &asymp; 1.96&times;10<sup>-4</sup></span>) into <em>left / straight / right</em>.</li>
+        <li>Frames with fewer than two valid ego lanes are tagged <em>stop</em> for evaluation only.</li>
+      </ul>
+    </div>
+    <div><img src="assets/fig_lane_polylines.png" alt="tusimple polylines"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">01 · TuSimple Class Balance</div>
+  <h2>Why class weighting and synthesized stop matter</h2>
+  <div class="two-col right-wide">
+    <div>
+      <ul>
+        <li><strong>Straight ~60%</strong>: highway footage is dominated by long straight segments.</li>
+        <li><strong>Right ~22% / Left ~19%</strong>: roughly balanced gentle curves.</li>
+        <li><strong>Stop ~0%</strong>: natural highway frames almost never have zero ego-lanes &mdash; we synthesize <em>stop</em> at training time by zeroing the lane region on a 10% random subset.</li>
+      </ul>
+      <div class="takeaway amber">This imbalance later drives a real failure mode: <em>without</em> augmentation and with a short EarlyStopping patience, six of nine controlled-experiment cells collapsed to the majority predictor. We will look at the recovery in Section 4.</div>
+    </div>
+    <div><img src="assets/fig_lane_label_balance.png" alt="lane label balance"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">01 · Pi-camera Rig</div>
+  <h2>The Pi fine-tune set, in detail</h2>
+  <div class="two-col">
+    <div class="panel">
+      <h3>What it is</h3>
+      <ul>
+        <li>10 500 frames captured with a <strong>Pi Camera v2 module</strong> over a <em>test-bench</em>: dark road on cream-coloured fabric.</li>
+        <li>2 704 unique source frames across three videos (<span class="tok">left_01</span>, <span class="tok">right_01</span>, <span class="tok">straight_02</span>); each frame appears ~4&times; via offline augmentations.</li>
+        <li>Balanced after augmentation: <strong>3 500 frames / direction</strong>.</li>
+        <li><strong>Source-frame stratified split</strong> 70 / 15 / 15 (<span class="tok">1893 / 405 / 406 unique sources</span>) prevents augmented-copy leakage across splits.</li>
+      </ul>
+    </div>
+    <div class="panel magenta">
+      <h3>Why the shipped masks failed</h3>
+      <ul>
+        <li>The dataset ships with binary masks regenerated by <strong>SegFormer-B2-cityscapes</strong>.</li>
+        <li>Cityscapes was trained on real road scenes &mdash; not test-bench tape.</li>
+        <li><strong>Median lane coverage = 0.8%</strong>, range <strong>0.0&ndash;13.6%</strong>; many frames have <em>no mask at all</em>.</li>
+        <li>Diagnosis &amp; replacement are the topic of Section 6.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">01 · Phone Fine-tune Set</div>
+  <h2>S24-Ultra eye captures &nbsp;<small style="color:var(--text-dim);">privacy-filtered</small></h2>
+  <div class="metric-row">
+    <div class="panel"><div class="metric">44</div><div class="lbl">Total captures used for training</div></div>
+    <div class="panel"><div class="metric green">22</div><div class="lbl">Eyes open</div></div>
+    <div class="panel"><div class="metric magenta">22</div><div class="lbl">Eyes closed</div></div>
+    <div class="panel"><div class="metric">6</div><div class="lbl">Subjects</div></div>
+  </div>
+  <div class="two-col" style="margin-top:.4em;">
+    <div class="panel">
+      <h3>Two capture sessions</h3>
+      <ul>
+        <li><strong>Session 1</strong> &mdash; 12 captures, prefix <span class="tok">20260515_*</span>. Includes family members who have <em>not</em> consented to public display.</li>
+        <li><strong>Session 2</strong> &mdash; 32 captures, prefix <span class="tok">20260517_*</span>. Author has explicitly cleared inclusion.</li>
+        <li><strong>Training uses all 44.</strong> Every figure in this deck and in the paper draws only from Session 2.</li>
+      </ul>
+      <div class="takeaway">The notebook <span class="tok">eye/07</span> has been retrofitted with a filter on <span class="tok">20260515_*</span> for all of its visualizations &mdash; verified by stripping every embedded PNG output that previously held family faces.</div>
+    </div>
+    <div><img src="assets/fig_eye_phone_detect.png" alt="one author capture pair"></div>
+  </div>
+</section>
+
+<!-- ================================================================= -->
+<!-- SECTION 2 - PIPELINES                                              -->
+<!-- ================================================================= -->
+<section><div class="divider">
+  <div class="num">02</div>
+  <h1>Pipelines &amp; Architectures</h1>
+  <div class="blurb">Each pipeline is built three ways &mdash; classical, from-scratch CNN, transfer-learning &mdash; so the model-selection decision is grounded in like-for-like comparisons.</div>
+</div></section>
+
+<section>
+  <div class="eyebrow">02 · Eye pipeline overview</div>
+  <h2>Three candidate families, one head-to-head</h2>
+  <div class="flow">
+   INPUT 64x64x1 grayscale (BT.601, CLAHE 8x8 clipLimit=2)
+        |
+        +---------+---------+--------------------+
+        |         |         |                    |
+   [Classical]  [CNN]  [TransferLearning]  [Lightweight family]
+   HOG+SVM    25k-250k    MobileNetV2/V3      4k / 25k / 97k
+                            (frozen / FT)        tiny/base/wide
+        |         |         |                    |
+        +---------+---------+--------------------+
+                            |
+                  Model Selection §06
+                            |
+                    Winner: lw_wide (97k)</div>
+  <div class="two-col" style="margin-top:.5em;">
+    <div class="panel"><h3>Why three families?</h3><p class="small">The rubric demands a classical-CV reference (so we know an SVM with HOG is the floor) and a from-scratch CNN (so any TL gain is measurable as <em>marginal lift</em> rather than a black-box win). The lightweight family explores whether the same architectural template scales down without losing the ceiling.</p></div>
+    <div class="panel"><h3>Same protocol everywhere</h3><p class="small">Identical 70/15/15 split, identical CLAHE preprocessing, identical seed (42). All candidates feed the same model-selection table in Section 5.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · Eye Classical Baseline</div>
+  <h2>HSV + CLAHE + HOG + Linear SVM</h2>
+  <div class="two-col">
+    <div class="panel">
+      <h3>Why each step</h3>
+      <ul>
+        <li><strong>Grayscale + CLAHE</strong>: eye-state is a texture / edge problem; chroma is uninformative on CEW (mixed BMP / JPEG). CLAHE locally equalizes the eye-socket area so the SVM sees the gradient pattern rather than absolute brightness.</li>
+        <li><strong>Canny (Otsu-adaptive)</strong>: edge map of the upper face. We tune the threshold from Otsu's bimodal split so the same recipe works on bright and dim images.</li>
+        <li><strong>HOG: <span class="tok">8&times;8 px / cell</span>, <span class="tok">2&times;2 cells / block</span>, 9 orientations</strong>. Sampled directly from the published CEW baselines so we sit on the literature floor, not below it.</li>
+        <li><strong>Linear SVM</strong> with <span class="tok">GridSearchCV C&isin;{0.1, 1, 10}</span>. Linear so the result is reproducible and interpretable.</li>
+      </ul>
+    </div>
+    <div><img src="assets/fig_eye_classical.png" alt="eye classical pipeline"></div>
+  </div>
+  <div class="takeaway amber">Final test accuracy <strong>0.874</strong> at 14 k SVM parameters. This is the floor the CNN must clear &mdash; and it does, by only 2.2 pp.</div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · Eye Custom CNN</div>
+  <h2>From-scratch architecture &nbsp;<small style="color:var(--text-dim);">25.8 k params</small></h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Why this shape</h3>
+      <ul>
+        <li><strong>3 conv blocks, widths 16 / 32 / 64</strong>: a power-of-two ramp, doubling channels at each pool. Standard image-classification ramp.</li>
+        <li><strong>BN after every conv</strong> stabilizes training on a 2 k-sample dataset, lets us push LR to 1e-3 without divergence.</li>
+        <li><strong>ReLU + 2&times;2 MaxPool</strong>: cheap and translation-equivariant, well within the int8 op set.</li>
+        <li><strong>Global Average Pooling</strong> instead of Flatten: kills the 4 k-parameter dense layer a naive design would introduce, and behaves like a regularizer for free.</li>
+        <li><strong>Dense(32) + Dropout(0.5)</strong>: head capacity calibrated to the dataset size (~25 examples per parameter).</li>
+        <li><strong>Dense(2) softmax</strong>: 2-class softmax instead of a single sigmoid for symmetric probability calibration.</li>
+      </ul>
+      <p class="small" style="color:var(--text-dim);">Adam lr=1e-3, ReduceLROnPlateau, EarlyStopping(patience=8). No pretrained weights anywhere &mdash; required by the rubric.</p>
+    </div>
+    <div class="flow">
+ Input 64x64x1 (grayscale + CLAHE)
+   |
+   Conv(16, 3x3) + BN + ReLU + MaxPool   ->  32x32x16
+   Conv(32, 3x3) + BN + ReLU + MaxPool   ->  16x16x32
+   Conv(64, 3x3) + BN + ReLU + MaxPool   ->   8x8x64
+   |
+   GlobalAvgPool2D                        ->   64
+   Dense(32) + ReLU + Dropout(0.5)        ->   32
+   Dense(2, softmax)                      ->    2
+   |
+ P(closed), P(open)</div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · Eye Custom CNN</div>
+  <h2>Training behaviour &amp; calibration</h2>
+  <div class="two-col">
+    <div><img src="assets/fig_eye_train.png" alt="eye train curves"></div>
+    <div><img src="assets/fig_eye_cm_roc.png" alt="eye cm + roc"></div>
+  </div>
+  <div class="two-col" style="margin-top:.4em;">
+    <div class="panel">
+      <h3>What the curves show</h3>
+      <p class="small">Convergence inside ten epochs; train-val gap stays under 0.05 across the run. The dropout-plus-GAP head is delivering the regularization we asked it to. The characteristic L-shape on the val loss (fast drop, then oscillating plateau) is consistent with the EarlyStopping cut at epoch 30.</p>
+    </div>
+    <div class="panel">
+      <h3>Confusion + ROC</h3>
+      <p class="small">Confusion matrix is near-symmetric and very slightly favours recall on OPEN. ROC AUC <strong>~0.96</strong>. The residual errors concentrate on partially-open eyes that sit on the decision boundary &mdash; a binary frame structurally cannot disambiguate them.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · Eye Transfer Learning</div>
+  <h2>Four TL candidates against the from-scratch CNN</h2>
+  <div class="two-col">
+    <div><img src="assets/fig_eye_tl_curves.png" alt="tl curves"></div>
+    <div><img src="assets/fig_eye_params_acc.png" alt="params vs acc"></div>
+  </div>
+  <div class="panel" style="margin-top:.5em;">
+    <h3>Backbones</h3>
+    <p class="small">
+      <span class="chip">MobileNetV2 frozen</span>
+      <span class="chip">MobileNetV2 full fine-tune</span>
+      <span class="chip m">MobileNetV3-Small frozen</span>
+      <span class="chip m">MobileNetV3-Small full fine-tune</span>
+    </p>
+    <p class="small">Both backbones are NPU- and TFLite-friendly &mdash; deliberately chosen for the S24 deployment target. Two regimes each (frozen vs full FT) so we measure the marginal value of pretrained weights vs the marginal value of fine-tuning over them.</p>
+  </div>
+  <div class="takeaway">At every accuracy point above 0.85 the from-scratch CNN uses roughly <em>two orders of magnitude</em> fewer parameters than the best TL candidate. CEW (2 423 samples) is too small for ImageNet-scale priors to win on accuracy.</div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · Lane pipeline overview</div>
+  <h2>Two tracks, deliberately</h2>
+  <div class="flow">
+   TUSIMPLE TRACK (canonical benchmark, mandated by rubric)
+     1280x720 frames + polyline JSON
+        |
+        +--> derive 4-class direction labels (curvature buckets)
+        |
+        +--> classical [HSV S-channel + Canny + Hough + SVM]
+        +--> from-scratch CNN [128x128 RGB, 4 conv blocks]
+        +--> transfer-learning [MobileNetV2 frozen / FT]
+        +--> lightweight family [tiny / baseline / wide]
+                       |
+                       v
+               model-selection §06
+
+   PI-DOMAIN TRACK (deployment artifact - Section 6 rebuild)
+     Pi Camera test-bench (dark road on cream cloth)
+        |
+        +--> Otsu+morphology mask regeneration (replaces SegFormer)
+        +--> sanity overfit audit (7k U-Net)
+        +--> truncated U-Net 12 627 params, from scratch
+        +--> 3-class extension (lane-left / right / bg)
+                       |
+                       v
+               deployment artifact &gt; 27.0 KB int8</div>
+  <div class="takeaway">The two tracks <em>do not share weights</em>. The TuSimple track satisfies the rubric (classical, custom CNN, TL, experiments). The Pi track is the actual deployment artifact, trained from scratch on regenerated supervision.</div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · Lane Classical (TuSimple)</div>
+  <h2>HSV-S + ROI + Canny + Hough + SVM</h2>
+  <div class="two-col">
+    <div class="panel">
+      <h3>Stage-by-stage rationale</h3>
+      <ul>
+        <li><strong>Downsample 1280&times;720 &rarr; 640&times;360</strong> and crop to the lower 60% ROI. Sky and horizon contribute zero lane information and only add Canny noise.</li>
+        <li><strong>HSV S-channel fused with grayscale</strong>: lane markings are saturation-dominant. Mixing in V keeps the white-on-asphalt lane visible under shadow.</li>
+        <li><strong>Canny</strong>: edge map of the ROI after a slight Gaussian blur.</li>
+        <li><strong>Probabilistic Hough</strong>: lines clustered into left vs right groups by slope sign.</li>
+        <li><strong>30-D feature vector</strong>: per-side line statistics (mean slope, mean intercept, count) plus a 12-bin angle histogram.</li>
+        <li><strong>One-vs-rest linear SVM</strong> over four classes (left / right / straight / stop).</li>
+      </ul>
+    </div>
+    <div><img src="assets/fig_lane_hough.png" alt="lane Hough"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · Lane Custom CNN (TuSimple)</div>
+  <h2>From-scratch encoder &nbsp;<small style="color:var(--text-dim);">~86 k params</small></h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Why this shape</h3>
+      <ul>
+        <li><strong>Four encoder blocks, widths 16 / 32 / 64 / 96</strong>: deeper than the eye CNN because TuSimple frames have road scenery, sky, vehicles &mdash; many more useful mid-level features.</li>
+        <li><strong>128&times;128 RGB</strong>: keeps aspect-ratio close to 16:9 after a single letter-box crop; small enough to fit in a Pi-class latency budget.</li>
+        <li><strong>BN + ReLU + 2&times;2 MaxPool</strong> after every block. Standard, int8-friendly.</li>
+        <li><strong>GAP + Dropout(0.4) + Dense(4)</strong> softmax head.</li>
+        <li><strong>Class-weighted categorical cross-entropy</strong> because of the 60 / 22 / 19 / 0 distribution.</li>
+        <li><strong>Adam 1e-3, ReduceLROnPlateau, EarlyStopping</strong>. No pretrained weights.</li>
+      </ul>
+    </div>
+    <div><img src="assets/fig_lane_train.png" alt="lane train curves"></div>
+  </div>
+  <div class="takeaway amber">The 0.13 train-val gap is the largest of the project, reflecting the heavier distortion of the lane task &mdash; not overfitting per se, but the inherent ambiguity of single-frame curvature buckets.</div>
+</section>
+
+<section>
+  <div class="eyebrow">02 · Lane TL (TuSimple)</div>
+  <h2>MobileNetV2 backbone &mdash; the only place TL wins</h2>
+  <div class="two-col">
+    <div><img src="assets/fig_lane_tl_curves.png" alt="lane TL curves"></div>
+    <div><img src="assets/fig_lane_tl_cms.png" alt="lane TL confusions"></div>
+  </div>
+  <div class="panel" style="margin-top:.4em;">
+    <h3>Why TL wins here but lost on the eye task</h3>
+    <p class="small">TuSimple frames contain real road scenery &mdash; sky, vehicles, lane markings on asphalt. ImageNet's low- and mid-level features (edges, textures, vehicle parts) are <em>genuinely</em> transferable. The MobileNetV2 fine-tune lifts test accuracy by <strong>~7 pp</strong> over the from-scratch CNN. The model-selection algorithm still chooses the lightweight baseline because the latency / size penalty (8.3&times; larger, 9.5&times; slower) outweighs the 3 pp gain under the lane scoring weights.</p>
+  </div>
+  <div class="takeaway">The Pi deployment artifact <em>does not</em> inherit any weights from this MobileNetV2 fine-tune &mdash; the Pi track in Section 6 is trained from scratch on regenerated supervision. The TuSimple TL number is the canonical-benchmark result mandated by the rubric.</div>
+</section>
+
+<!-- ================================================================= -->
+<!-- SECTION 3 - RESULTS                                                -->
+<!-- ================================================================= -->
+<section><div class="divider">
+  <div class="num">03</div>
+  <h1>Results &amp; Figure Tour</h1>
+  <div class="blurb">Each figure annotated. Eye and lane confusion matrices, robustness, misclassification galleries.</div>
+</div></section>
+
+<section>
+  <div class="eyebrow">03 · Eye Pipeline Headline</div>
+  <h2>Eye candidate table (CEW test split, N = 364)</h2>
+  <table>
+    <thead><tr><th>Model</th><th>Accuracy</th><th>F1</th><th>Params</th><th>Family</th></tr></thead>
+    <tbody>
+      <tr><td>classical HOG + SVM</td><td>0.874</td><td>0.876</td><td>14 k</td><td>classical</td></tr>
+      <tr><td>cnn_from_scratch</td><td>0.896</td><td>0.898</td><td>25 778</td><td>CNN</td></tr>
+      <tr><td>mobilenetv3_small_frozen</td><td>0.852</td><td>0.859</td><td>940 274</td><td>TL</td></tr>
+      <tr><td>mobilenetv3_small_finetune</td><td>0.843</td><td>0.847</td><td>940 274</td><td>TL</td></tr>
+      <tr><td>mobilenetv2_frozen</td><td>0.874</td><td>0.872</td><td>2 260 546</td><td>TL</td></tr>
+      <tr><td>mobilenetv2_finetune</td><td>0.885</td><td>0.888</td><td>2 260 546</td><td>TL</td></tr>
+      <tr><td>lw_tiny</td><td>0.874</td><td>0.873</td><td>4 328</td><td>lightweight</td></tr>
+      <tr><td>lw_baseline</td><td>0.896</td><td>0.898</td><td>25 778</td><td>lightweight</td></tr>
+      <tr><td class="hi">lw_wide &nbsp;<span class="chip g">winner</span></td><td class="hi">0.907</td><td class="hi">0.910</td><td>97 538</td><td>lightweight</td></tr>
+    </tbody>
+  </table>
+  <div class="takeaway">The largest TL candidate is <strong>88&times;</strong> the size of the from-scratch winner and <strong>0.011 less accurate</strong>. Section 5 explains why.</div>
+</section>
+
+<section>
+  <div class="eyebrow">03 · Eye Robustness</div>
+  <h2>Eye from-scratch CNN under synthetic distortions</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Distortion suite (test-time only)</h3>
+      <ul>
+        <li><strong>Brightness</strong> &plusmn;20 / &plusmn;40 %</li>
+        <li><strong>Rotation</strong> &plusmn;10&deg; / &plusmn;25&deg;</li>
+        <li><strong>Scale</strong> 0.8&times; / 1.2&times;</li>
+        <li><strong>Occlusion</strong> 25% rectangle + 8&times;16-px cutout</li>
+        <li><strong>Gaussian noise</strong> &sigma; &isin; {5, 15, 25}</li>
+        <li><strong>Motion blur</strong> k &isin; {5, 15}</li>
+        <li><strong>JPEG q=30</strong> + barrel distortion k=0.2</li>
+      </ul>
+      <div class="takeaway amber">Brightness shifts and motion blur dominate the degradation (&minus;0.15 to &minus;0.25 acc). Gaussian noise is relatively benign because CEW images are themselves grainy. <strong>Mean robust accuracy 0.662</strong>.</div>
+    </div>
+    <div><img src="assets/fig_eye_robust.png" alt="eye robustness"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">03 · Eye Misclassifications</div>
+  <h2>Where does the eye CNN fail?</h2>
+  <div class="two-col">
+    <div><img src="assets/fig_eye_misses.png" alt="eye misclass"></div>
+    <div class="panel">
+      <h3>Failure mode is structural, not noise</h3>
+      <p class="small">The eight highest-confidence misclassifications all share one property: the eye is <em>partially open</em> or the subject is glancing sideways. In a binary frame the network has no class for these &mdash; it must pick one of two extremes when the truth is in between.</p>
+      <p class="small">A three-class extension (<span class="chip g">open</span> <span class="chip a">half</span> <span class="chip m">closed</span>) would likely absorb these errors. We do not pursue it in this project because the CEW labels themselves do not provide that level of granularity.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">03 · Lane Pipeline Headline</div>
+  <h2>Lane TuSimple confusion + lane gallery</h2>
+  <div class="two-col">
+    <div><img src="assets/fig_lane_cnn_cm.png" alt="lane CNN cm"></div>
+    <div><img src="assets/fig_lane_misses.png" alt="lane misses"></div>
+  </div>
+  <div class="panel" style="margin-top:.4em;">
+    <h3>Reading the figures</h3>
+    <p class="small"><strong>Confusion matrix</strong>: the synthesized <em>stop</em> class is perfectly separable; the dominant remaining error is gentle curves predicted as <em>straight</em>. <strong>Worst-eight gallery</strong>: every example is a gentle-curve frame mislabeled as straight on a road where a single frame is in fact ambiguous to a human observer.</p>
+  </div>
+  <div class="takeaway">This is the expected and hardest case &mdash; arguably correct labeling within the single-frame information budget. A temporal aggregator on top of this CNN would absorb most of the residual.</div>
+</section>
+
+<section>
+  <div class="eyebrow">03 · Lane Robustness</div>
+  <h2>Lane CNN under the same distortion suite</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>What the bars say</h3>
+      <ul>
+        <li>The lane model is <em>unexpectedly noise-invariant</em>: Gaussian &sigma; = 15 reaches 0.709, essentially equal to clean. Lane markings and tape edges are high-contrast features that survive grain.</li>
+        <li>Brightness extremes and motion blur drive almost all of the degradation, mirroring the eye task.</li>
+        <li>Mean robust accuracy <strong>0.660</strong> &mdash; almost identical to the eye pipeline.</li>
+      </ul>
+    </div>
+    <div><img src="assets/fig_lane_robust.png" alt="lane robustness"></div>
+  </div>
+</section>
+
+<!-- ================================================================= -->
+<!-- SECTION 4 - EXPERIMENTS                                            -->
+<!-- ================================================================= -->
+<section><div class="divider">
+  <div class="num">04</div>
+  <h1>Controlled Experiments</h1>
+  <div class="blurb">One variable at a time, fixed seed, fixed split. Four experiments per pipeline, plus the sanity overfit audit that triggered the Pi-track rebuild.</div>
+</div></section>
+
+<section>
+  <div class="eyebrow">04 · Experiments &mdash; design</div>
+  <h2>What we varied and why</h2>
+  <table>
+    <thead><tr><th>Exp</th><th>Variable</th><th>Levels</th><th>Eye</th><th>Lane</th></tr></thead>
+    <tbody>
+      <tr><td class="hi">A</td><td>Data augmentation</td><td>none / light / heavy</td><td>flip + &plusmn;10&deg; + brightness</td><td>HFlip + &plusmn;5&deg; + rain / fog / shadow</td></tr>
+      <tr><td class="hi">B</td><td>Color space</td><td>RGB / grayscale / HSV</td><td>same channels at the input</td><td>HSV-S only as an extreme case</td></tr>
+      <tr><td class="hi">C</td><td>Robustness (test-time)</td><td>noise / blur / brightness / occlusion / fog</td><td>distortion suite</td><td>distortion suite</td></tr>
+      <tr><td class="hi">D</td><td>Lightweight design</td><td>tiny / baseline / wide</td><td>4 k / 25 k / 97 k params</td><td>26 k / 86 k / 250 k params</td></tr>
+    </tbody>
+  </table>
+  <p class="small">Every experiment uses the same seed (42), the same JSON split, and the same metric set. Transfer learning is excluded here because it gets its own notebook (eye/04 and lane/04).</p>
+</section>
+
+<section>
+  <div class="eyebrow">04 · Exp-A &middot; Augmentation (eye)</div>
+  <h2>Light augmentation is the single biggest lift</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Result</h3>
+      <ul>
+        <li><strong>none</strong> &mdash; 0.880 acc</li>
+        <li><strong>light</strong> &mdash; <span class="chip g">0.896</span> &nbsp;<small style="color:var(--text-dim);">flip + &plusmn;10&deg; rotation + brightness</small></li>
+        <li><strong>heavy</strong> &mdash; 0.889 &nbsp;<small style="color:var(--text-dim);">+ cutout + elastic + motion-blur</small></li>
+      </ul>
+      <div class="takeaway">Light augmentation closes the gap; heavy augmentation overshoots and slightly degrades performance because cutout / elastic deformations are too far from CEW's distribution to help.</div>
+    </div>
+    <div><img src="assets/fig_eye_expA.png" alt="eye Exp-A"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · Exp-B &middot; Color space (eye)</div>
+  <h2>Color space barely matters for this task</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Result</h3>
+      <ul>
+        <li><strong>RGB</strong> &mdash; 0.890</li>
+        <li><strong>grayscale</strong> &mdash; <span class="chip g">0.896</span></li>
+        <li><strong>HSV</strong> &mdash; 0.886</li>
+      </ul>
+      <div class="takeaway">All three land within &plusmn;0.01 of each other &mdash; eye-state is overwhelmingly a structural / edge problem. This is the empirical justification for the grayscale + CLAHE preprocessing chosen in the classical baseline.</div>
+    </div>
+    <div><img src="assets/fig_eye_expB.png" alt="eye Exp-B"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · Exp-D &middot; Lightweight (eye)</div>
+  <h2>Where the from-scratch winner is born</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Three variants</h3>
+      <ul>
+        <li><strong>lw_tiny &nbsp;4 328 params</strong>: 0.874 &mdash; under-capacity, the model can't separate the trickier eye-state boundaries.</li>
+        <li><strong>lw_baseline &nbsp;25 778</strong>: 0.896 &mdash; matches the from-scratch CNN exactly (same architecture).</li>
+        <li><strong>lw_wide &nbsp;97 538</strong>: <span class="chip g">0.907</span> &mdash; <em>winner</em>. Extra width buys both accuracy and better int8 quantization tolerance.</li>
+      </ul>
+      <div class="takeaway">~97 k parameters is the sweet spot for CEW: enough capacity to absorb the residual difficult cases, small enough to avoid overfitting on 2 423 samples.</div>
+    </div>
+    <div><img src="assets/fig_eye_expD.png" alt="eye Exp-D"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · Exp-A &middot; Augmentation (lane)</div>
+  <h2>Augmentation is <em>required</em> on TuSimple</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Result</h3>
+      <ul>
+        <li><strong>none</strong> &mdash; 0.534 &nbsp;<small style="color:var(--text-dim);">collapses to majority predictor (always-straight)</small></li>
+        <li><strong>light</strong> &mdash; <span class="chip g">0.692</span> &nbsp;<small style="color:var(--text-dim);">HFlip + &plusmn;5&deg; + brightness</small></li>
+        <li><strong>heavy</strong> &mdash; 0.661 &nbsp;<small style="color:var(--text-dim);">+ rain / fog / shadow via albumentations</small></li>
+      </ul>
+      <div class="takeaway amber">Without augmentation the model has no incentive to learn anything other than "always predict the majority class". Light augmentation breaks the model out of the flat region in fewer epochs; heavy augmentation is too aggressive for the 3 626-frame budget.</div>
+    </div>
+    <div><img src="assets/fig_lane_expA.png" alt="lane Exp-A"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · Exp-D &middot; Lightweight (lane)</div>
+  <h2>The lane sweet spot is smaller than the eye sweet spot</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Result</h3>
+      <ul>
+        <li><strong>tiny &nbsp;~26 k params</strong> &mdash; 0.61</li>
+        <li><strong>baseline &nbsp;~86 k</strong> &mdash; <span class="chip g">0.69</span> &nbsp;<em>winner</em></li>
+        <li><strong>wide &nbsp;~250 k</strong> &mdash; 0.66</li>
+      </ul>
+      <div class="takeaway">The wider variant fails to amortize its extra weights on the 3 626-frame TuSimple-sized dataset &mdash; classic over-parameterization, the same pattern that hurt the larger TL candidates.</div>
+    </div>
+    <div><img src="assets/fig_lane_expD.png" alt="lane Exp-D"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · Failure modes documented in the paper</div>
+  <h2>Majority-class collapse &amp; the recovery prescription</h2>
+  <div class="panel">
+    <h3>Symptom</h3>
+    <p class="small">Six of nine controlled-experiment cells on the lane pipeline initially settled at the majority-class predictor: accuracy = 0.534, macro-F1 = 0.174. Diagnosis: the class-weighted training schedule (<span class="tok">epochs=18</span>, <span class="tok">patience=6</span>) was too short for the model to escape the ~10-epoch flat region near initialization. Under the same schedule, the data-augmented variants survived.</p>
+  </div>
+  <div class="panel" style="margin-top:.5em;">
+    <h3>Recovery prescription</h3>
+    <p class="small"><span class="tok">epochs=35</span> &nbsp; <span class="tok">patience=12</span> &nbsp; <span class="tok">5&times;10<sup>-4</sup> warmup LR</span>. All six candidates recovered to the 0.74&ndash;0.77 range.</p>
+  </div>
+  <div class="takeaway amber">Reported rather than hidden because it is a real failure mode of class-weighted training on imbalanced multi-class problems. It also explains why <em>any</em> augmentation is essential in Exp-A: light augmentation introduces enough input variability to break the model out of the flat region in fewer epochs, eliminating the need for the long warmup schedule.</div>
+</section>
+
+<section>
+  <div class="eyebrow">04 · Sanity audit (Pi domain)</div>
+  <h2>Can a 7 k-parameter U-Net overfit 50 images? Twice.</h2>
+  <div class="two-col">
+    <div><img src="assets/fig_lane_phase1a_overfit.png" alt="phase 1a"></div>
+    <div><img src="assets/fig_lane_phase1b_overfit.png" alt="phase 1b"></div>
+  </div>
+  <div class="panel" style="margin-top:.4em;">
+    <h3>Same network, same optimizer, only the supervision changes</h3>
+    <p class="small">
+      <span class="chip m">SegFormer masks</span> &nbsp; train IoU plateaus at <strong>0.244</strong> &mdash; a 7 193-parameter U-Net cannot overfit 50 images of garbage.<br>
+      <span class="chip g">Otsu-regenerated masks</span> &nbsp; train IoU climbs to <strong>0.992</strong> &mdash; signal recovered.
+    </p>
+  </div>
+  <div class="takeaway">Binary verdict on the data-quality question, with no architectural changes confounding it. Triggered the full Pi-pipeline rebuild documented in Section 6.</div>
+</section>
+
+<!-- ================================================================= -->
+<!-- SECTION 5 - MODEL SELECTION + FINE-TUNE                            -->
+<!-- ================================================================= -->
+<section><div class="divider">
+  <div class="num">05</div>
+  <h1>Model Selection &amp; Fine-Tuning</h1>
+  <div class="blurb">A six-criterion weighted score with a Pareto frontier check. Per-user eye fine-tune. Lane mask regen and truncated U-Net.</div>
+</div></section>
+
+<section>
+  <div class="eyebrow">05 · Selection algorithm</div>
+  <h2>The six-criterion weighted score</h2>
+  <div class="panel">
+    <h3>Inputs per candidate</h3>
+    <table style="font-size:.5em;">
+      <thead><tr><th>Metric</th><th>Source</th><th>Direction</th></tr></thead>
+      <tbody>
+        <tr><td>acc_clean</td><td>test-set accuracy</td><td>higher better</td></tr>
+        <tr><td>acc_robust</td><td>mean across Exp-C distortions</td><td>higher better</td></tr>
+        <tr><td>f1_macro</td><td>test-set macro F1</td><td>higher better</td></tr>
+        <tr><td>params</td><td>model parameter count</td><td>lower better</td></tr>
+        <tr><td>size_mb</td><td>int8 .tflite size</td><td>lower better</td></tr>
+        <tr><td>latency_ms</td><td>S24-Ultra benchmark (eye) / x86 calibrated (lane)</td><td>lower better</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel" style="margin-top:.5em;">
+    <h3>Weighting</h3>
+<pre><code>eye_score  = 0.35*acc + 0.20*acc_robust + 0.15*f1
+           + 0.15*(1 - lat_norm) + 0.10*(1 - size_norm) + 0.05*(1 - params_norm)
+
+lane_score = 0.25*acc + 0.20*f1 + 0.15*acc_robust
+           + 0.25*(1 - lat_norm) + 0.10*(1 - size_norm) + 0.05*(1 - params_norm)</code></pre>
+    <p class="small">Eye weights tilt toward accuracy (NPU-class target). Lane weights tilt toward latency (no NPU on the Pi). All non-accuracy fields are min-max-normalized over the candidate set so the score is on [0, 1].</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">05 · Pareto frontier</div>
+  <h2>Defensible even if you disagree with the weights</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Reading the chart</h3>
+      <ul>
+        <li>Each dot is a candidate plotted on parameters (log scale) vs test accuracy.</li>
+        <li>The <em>Pareto frontier</em> is the set of candidates that no other dominates on both axes.</li>
+        <li>The eye frontier is the lightweight family from <span class="tok">lw_tiny</span> to <span class="tok">lw_wide</span>. MobileNets sit deep in the dominated region.</li>
+        <li>The weighted-score winner is the rightmost point on the lightweight frontier: <span class="chip g">lw_wide</span> &mdash; 0.907 accuracy at 97 k parameters and 0.091 MB int8.</li>
+      </ul>
+    </div>
+    <div><img src="assets/fig_pareto.png" alt="pareto"></div>
+  </div>
+  <div class="takeaway">The frontier choice and the weighted-score choice agree &mdash; a defensible outcome regardless of the reviewer's preference for accuracy vs latency.</div>
+</section>
+
+<section>
+  <div class="eyebrow">05 · Eye Fine-tune Recipe</div>
+  <h2>44 photos, 20 epochs, 4.2 s of CPU compute</h2>
+  <div class="two-col">
+    <div class="panel">
+      <h3>Procedure (notebook eye/07 &middot; script <span class="tok">_finetune_44.py</span>)</h3>
+      <ul>
+        <li>Auto-orient each capture by voting over four 90&deg; rotations and choosing the one with the largest detected face.</li>
+        <li>Crop face to 100&times;100 with 5 % padding for eyebrows; resize to 64&times;64; BT.601 grayscale; CLAHE 8&times;8 clip 2.</li>
+        <li>Manual labels via ipywidgets &rarr; <span class="tok">artifacts/eye_finetune_labels.json</span> (44 entries, 22 open / 22 closed).</li>
+        <li><strong>Fine-tune</strong>: load <span class="tok">eye_winner.keras</span>, Adam lr=1e-4, batch 4, 20 epochs, sparse-CCE, no augmentation.</li>
+        <li><strong>Quantize</strong>: PTQ-int8 with 200-image CEW representative set, full int8 op set, int8 input / output dtype.</li>
+      </ul>
+    </div>
+    <div><img src="assets/fig_eye_app_finetune.png" alt="eye 44-photo before/after"></div>
+  </div>
+  <div class="takeaway">Before-fine-tune <em>0.568</em> on the 44 captures; after <em>1.000</em>. Cost: 4.2 s of desktop CPU. PTQ-int8 retains both numbers within 0 pp.</div>
+</section>
+
+<section>
+  <div class="eyebrow">05 · Domain stability check</div>
+  <h2>What does the fine-tune cost on the canonical CEW?</h2>
+  <div class="metric-row">
+    <div class="panel"><div class="metric green">100.0%</div><div class="lbl">44-photo accuracy after FT (FP32)</div></div>
+    <div class="panel"><div class="metric green">100.0%</div><div class="lbl">44-photo accuracy after FT (int8)</div></div>
+    <div class="panel"><div class="metric">76.4%</div><div class="lbl">CEW test accuracy retained</div></div>
+    <div class="panel"><div class="metric magenta">&minus;14.3 pp</div><div class="lbl">from base 90.7 % &rarr; 76.4 %</div></div>
+  </div>
+  <div class="panel" style="margin-top:.5em;">
+    <h3>What the trade-off says</h3>
+    <p class="small">The fine-tune is a domain-adaptation step, not a regression on the canonical benchmark. The deployment artifact is the personally-fine-tuned model because that is what makes the live demo work for real users; the headline 0.907 reported in Table I refers to the unfine-tuned winner.</p>
+    <p class="small">If you want the canonical CEW headline number on a host that has never seen the deployment subjects, ship <span class="tok">artifacts/eye_winner.tflite</span> (108 KB int8 of the unfine-tuned winner) instead.</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">05 · Lane fine-tune &middot; truncated U-Net</div>
+  <h2>Step-by-step: from regenerated masks to int8 deploy</h2>
+  <div class="flow">
+   1. Otsu+morphology mask regen (Sec. 6 motivation)
+        cv2.GaussianBlur(5) -> Otsu+INV -> open(3x3, 1) -> drop blobs < 200 px
+        10 500 frames in 218 s on CPU.
+
+   2. Source-frame stratified split 70/15/15 per direction
+        2 704 unique source frames -> 1893 / 405 / 406; augmented copies
+        follow their source's split (no leakage).
+
+   3. Truncated U-Net (12 627 params)
+        2 enc blocks + bottleneck + 2 dec blocks (next slide)
+
+   4. Train FP32: Adam 1e-3, BCE+Dice, batch 32, EarlyStopping patience=6.
+        25 epochs, 9.8 min on desktop CPU.
+        Val IoU stabilizes at 0.9969.
+
+   5. PTQ-int8 with 200-image representative set
+        60.0 KB FP32 -> 26.7 KB int8 (2.25x compression, IoU delta -0.003 pp).
+
+   6. Three-class extension (lane-left / right / bg)
+        Conv(3, softmax) head, median-x bisection of binary mask.
+        Same training recipe, 30 epochs, 27.0 KB int8.</div>
+  <div class="takeaway">A six-step pipeline that fits in 100 lines of Python and produces a <strong>27 KB</strong> deployment artifact at IoU 0.997.</div>
+</section>
+
+<section>
+  <div class="eyebrow">05 · Truncated U-Net architecture</div>
+  <h2>Why two encoder blocks are enough</h2>
+  <div class="two-col">
+    <div class="flow">
+Input 128x128x3 RGB                          (49 152 floats)
+  |
+  Conv(8, 3x3)  + BN + ReLU                  e1: 128x128x8
+  MaxPool 2x2                                p1:  64x64x8
+  |
+  Conv(16, 3x3) + BN + ReLU                  e2:  64x64x16
+  MaxPool 2x2                                p2:  32x32x16
+  |
+  Conv(24, 3x3) + BN + ReLU                  b:   32x32x24
+  |
+  UpSample 2x2 + concat(e2)                  c2:  64x64x40
+  Conv(16, 3x3) + BN + ReLU                  d2:  64x64x16
+  |
+  UpSample 2x2 + concat(e1)                  c1: 128x128x24
+  Conv(8, 3x3)  + BN + ReLU                  d1: 128x128x8
+  |
+  Conv(3, 1x1, softmax)                      out:128x128x3</div>
+    <div class="panel">
+      <h3>Why this shape on this domain</h3>
+      <ul>
+        <li>Only <strong>2 pooling stages</strong> on a 128&times;128 input give a 32&times;32 receptive field at the bottleneck &mdash; already covers the largest lane curvature in the Pi rig.</li>
+        <li>No deeper layers because the Pi domain has <em>no high-level features</em> &mdash; the discriminative signal is a single dark-vs-cream contrast.</li>
+        <li>BatchNorm everywhere because the model trains from scratch on 7 361 images at batch 32 (heavy enough to make BN statistics meaningful).</li>
+        <li>U-shape skip connections preserve the lane edges that the encoder's 2&times;2 pools would otherwise blur.</li>
+        <li>Final head is a 1&times;1 conv with softmax over 3 channels &mdash; <span class="chip">bg</span> <span class="chip g">left</span> <span class="chip m">right</span>.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">05 · Truncated U-Net results</div>
+  <h2>Training curves and 3-class predictions</h2>
+  <div class="two-col">
+    <div><img src="assets/fig_lane_phase4_train.png" alt="phase 4 train"></div>
+    <div><img src="assets/fig_lane_phase6_train.png" alt="phase 6 train"></div>
+  </div>
+  <div class="metric-row" style="margin-top:.4em;">
+    <div class="panel"><div class="metric green">0.9969</div><div class="lbl">Binary test IoU (FP32)</div></div>
+    <div class="panel"><div class="metric green">0.9969</div><div class="lbl">Binary test IoU (int8)</div></div>
+    <div class="panel"><div class="metric green">0.9931</div><div class="lbl">3-class mean test IoU</div></div>
+    <div class="panel"><div class="metric">27.0 KB</div><div class="lbl">Shipped int8 size</div></div>
+  </div>
+</section>
+
+<!-- ================================================================= -->
+<!-- SECTION 6 - DEPLOYMENT                                             -->
+<!-- ================================================================= -->
+<section><div class="divider">
+  <div class="num">06</div>
+  <h1>Deployment &amp; Optimization</h1>
+  <div class="blurb">PTQ-int8, on-device benchmarks, NNAPI dead end, live Android app, RPi artifact, Firebase RTDB integration, Pi&rarr;PIC UART bridge.</div>
+</div></section>
+
+<section>
+  <div class="eyebrow">06 · Why PTQ-int8</div>
+  <h2>Quantization comes <em>after</em> training, not during</h2>
+  <div class="two-col">
+    <div class="panel">
+      <h3>The procedure</h3>
+      <ul>
+        <li><strong>Calibrate</strong> with a 200-image representative dataset drawn from the training split (eye: CEW; lane: regenerated Pi masks).</li>
+        <li><strong>Convert</strong> with <span class="tok">tf.lite.Optimize.DEFAULT</span> + <span class="tok">TFLITE_BUILTINS_INT8</span>; input &amp; output dtype set to <span class="tok">int8</span> so the runtime never has to dequantize at the I/O boundary.</li>
+        <li><strong>Verify</strong> by re-running the test split through the int8 interpreter and comparing IoU / accuracy.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Why not QAT</h3>
+      <p class="small"><strong>QAT (quantization-aware training)</strong> would fine-tune the network with simulated int8 quantization in the forward pass. We tried it via <span class="tok">tensorflow_model_optimization</span>; with our TFMOT version it failed on the cloned-model graph (documented in the notebook). PTQ alone already retains accuracy to within 0 pp on both pipelines, so QAT's marginal gain is not worth the additional fragility.</p>
+      <p class="small"><strong>Supervisor's directive</strong>: train first to preserve features, optimize second. PTQ matches this; QAT would not.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">06 · Eye PTQ result</div>
+  <h2>3.6&times; smaller, same accuracy, 8&times; faster CPU</h2>
+  <table>
+    <thead><tr><th>Variant</th><th>CEW accuracy</th><th>44-photo accuracy</th><th>Size</th><th>S24 CPU 4-thr</th><th>S24 GPU</th><th>S24 NNAPI*</th></tr></thead>
+    <tbody>
+      <tr><td>FP32</td><td>0.907</td><td>1.000</td><td>383.0 KB</td><td>0.450 ms</td><td>1.305 ms</td><td>0.451 ms</td></tr>
+      <tr><td class="hi">PTQ-int8 &nbsp;<span class="chip g">shipped</span></td><td class="hi">0.764</td><td class="hi">1.000</td><td class="hi">107 KB</td><td class="hi">0.126 ms</td><td>1.100 ms</td><td>0.125 ms</td></tr>
+    </tbody>
+  </table>
+  <p class="small" style="color:var(--text-dim);">* NNAPI delegate is created successfully but the runtime falls back to XNNPACK on the S24 Ultra (next slide). 100 runs after 50 warmup, official TFLite Benchmark APK.</p>
+  <div class="takeaway">PTQ-int8 buys us a <strong>3.6&times;</strong> smaller artifact and <strong>3.6&times;</strong> faster CPU inference at <strong>zero</strong> measured accuracy cost on the deployment-relevant 44-photo set. CEW retention drops to 0.764 not because of quantization but because of the personal fine-tune that precedes it.</div>
+</section>
+
+<section>
+  <div class="eyebrow">06 · S24 Ultra benchmarks</div>
+  <h2>What the three TFLite delegates actually do</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Reading the bars</h3>
+      <ul>
+        <li><strong>CPU XNNPACK (4 threads)</strong>: 0.126 ms &mdash; the optimum at this model size. XNNPACK fuses int8 conv-BN-ReLU into ARM NEON kernels.</li>
+        <li><strong>GPU (Adreno OpenCL)</strong>: 1.100 ms &mdash; <em>slower</em> than CPU because OpenCL kernel-launch overhead dominates at this tiny op count.</li>
+        <li><strong>NNAPI</strong>: 0.125 ms &mdash; identical to CPU because the delegate falls back to XNNPACK at runtime (next slide).</li>
+      </ul>
+    </div>
+    <div><img src="assets/fig_eye_s24.png" alt="s24 benchmarks"></div>
+  </div>
+  <div class="takeaway">~<strong>7 900 FPS theoretical</strong> for the 64&times;64 classifier on the S24 CPU. In the live app the bottleneck is ML Kit face detection (~1 ms median end-to-end), not our model.</div>
+</section>
+
+<section>
+  <div class="eyebrow">06 · NNAPI is a dead end</div>
+  <h2>Why the Hexagon NPU is unreachable from this APK</h2>
+  <div class="panel">
+    <p class="small">The TFLite benchmark runtime accepts <span class="tok">--use_nnapi=true</span>, constructs the delegate, then logs:</p>
+<pre><code>I tflite  : Created TensorFlow Lite delegate for NNAPI.
+W tflite  : Though NNAPI delegate is explicitly applied, the model graph
+            will not be executed by the delegate.</code></pre>
+    <p class="small">The runtime then silently falls back to XNNPACK. This behaviour is consistent with prior reports for Samsung's OneUI on Android 15 +: the Hexagon vendor driver <em>is not exposed via NNAPI</em>. Reaching the NPU requires Qualcomm's AI Engine Direct (QNN) SDK, which the stock benchmark APK does not bundle.</p>
+  </div>
+  <div class="takeaway amber">Mobile deployment on this hardware is therefore CPU-bound until the project migrates to a QNN delegate &mdash; documented as the recommended path forward in the paper.</div>
+</section>
+
+<section>
+  <div class="eyebrow">06 · Live Android app</div>
+  <h2>Kotlin / CameraX / ML Kit / TFLite / Firebase</h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Per-frame pipeline (~30 fps, ~1 ms end-to-end)</h3>
+      <ol>
+        <li>CameraX <span class="tok">ImageAnalysis</span> &rarr; YUV &rarr; RGB upright bitmap.</li>
+        <li>ML Kit face detection (FAST mode, no landmarks).</li>
+        <li>Square crop, +30 % padding, &minus;10 % y-shift &mdash; matches CEW composition.</li>
+        <li>BT.601 grayscale + 8&times;8 CLAHE in pure Kotlin (two-pass clip+redistribute mimicking <span class="tok">cv2.createCLAHE</span>).</li>
+        <li>TFLite int8 classifier &mdash; auto-detects dtype and dequantizes via the model's quantization params.</li>
+        <li>EMA smoother &alpha; = 0.25 + Schmitt-trigger hysteresis 0.62 / 0.38 on <em>P</em>(open).</li>
+        <li><strong>Firebase RTDB push</strong> at 10 Hz to <span class="tok">/eye_monitor</span>.</li>
+      </ol>
+    </div>
+    <div><img src="assets/fig_eye_app_pipeline.png" alt="android app pipeline"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">06 · Live Android app &middot; UX details</div>
+  <h2>Two things that mattered in practice</h2>
+  <div class="two-col">
+    <div class="panel">
+      <h3>CLAHE matters and is not trivial off-the-shelf</h3>
+      <p class="small">TFLite ships no Java / Kotlin CLAHE primitive. We re-implemented OpenCV's <span class="tok">cv2.createCLAHE(2.0, (8,8))</span> in pure Kotlin (96 lines, two-pass clip-and-redistribute, bilinear inter-tile interpolation).</p>
+      <p class="small">A naive global percentile-stretch alternative gave a 44-pixel-mean error against OpenCV's output and produced a model bias of ~95 % <em>P</em>(closed) on any face it saw.</p>
+    </div>
+    <div class="panel">
+      <h3>Single-frame predictions are too noisy for a stable UI label</h3>
+      <p class="small">An EMA with &alpha; = 0.25 (effective ~230 ms window) on per-frame <em>P</em>(open) plus a Schmitt-trigger hysteresis (require <em>P</em>(open) &gt; 0.62 to flip to OPEN, &lt; 0.38 to flip back to CLOSED) eliminates the label flicker that occurs when raw predictions hover near 0.5.</p>
+      <p class="small">Same machinery as a noise-tolerant comparator in analog electronics &mdash; the wider band trades a tiny bit of responsiveness for monotonicity.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">06 · Firebase RTDB</div>
+  <h2>How the phone hands the Pi a fresh decision</h2>
+  <div class="two-col">
+    <div class="panel">
+      <h3>Schema written to <span class="tok">/eye_monitor</span></h3>
+<pre><code>{
+  state       : "OPEN" | "CLOSED" | "UNKNOWN",
+  p_open      : 0..1,
+  p_closed    : 0..1,
+  latency_ms  : double,
+  fps         : double,
+  timestamp   : long  (ServerValue.TIMESTAMP),
+  device_id   : "&lt;Build.MODEL&gt;_&lt;android_id&gt;"
+}</code></pre>
+      <ul>
+        <li><strong>Programmatic init</strong> via <span class="tok">FirebaseOptions.Builder</span> &mdash; no <span class="tok">google-services.json</span> required.</li>
+        <li><strong>Throttled to 10 Hz</strong> inside <span class="tok">FirebaseClient.push()</span> so a 30-fps camera doesn't flood the DB.</li>
+        <li><strong>Server timestamp</strong> &mdash; monotonic regardless of phone clock drift.</li>
+      </ul>
+    </div>
+    <div class="panel magenta">
+      <h3>Verify from any shell</h3>
+<pre><code>$ curl https://lab1-f7c43-default-rtdb.firebaseio.com/eye_monitor.json
+{"device_id":"SM-S928B_fd59ef0a",
+ "fps":30.07,"latency_ms":1.70,
+ "p_closed":0.67,"p_open":0.33,
+ "state":"CLOSED",
+ "timestamp":1779147618172}</code></pre>
+      <p class="small">Re-run repeatedly and the state flips with the camera. The Pi side polls this endpoint at 10 Hz with the same cadence as the publisher.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">06 · Pi&rarr;PIC bridge</div>
+  <h2>From cloud state to a UART byte on a microcontroller</h2>
+  <div class="two-col">
+    <div class="flow">
+   Phone analyzer (~30 Hz)
+         |  smoother + Schmitt-trigger
+         |  10 Hz throttled push
+         v
+   Firebase RTDB /eye_monitor
+         |  GET (10 Hz poll, 100 ms cadence)
+         v
+   Pi  eye_to_pic.py
+         |  state -&gt; command mapping
+         |  edge trigger + 5 s heartbeat
+         |  fail-safe to 'C' on stale/UNKNOWN/network error
+         v
+   PIC16F877A on UART 9600 8N1
+         |  eyes_open := (cmd == 'E') ? 1 : 0
+         |  Safety state machine
+         v
+   Motor_Stop()  /  Motor_Forward()  /  ...</div>
+    <div class="panel">
+      <h3>Mapping</h3>
+      <table style="font-size:.55em;">
+        <thead><tr><th>Phone says</th><th>Pi sends</th><th>PIC effect</th></tr></thead>
+        <tbody>
+          <tr><td><span class="chip g">OPEN</span></td><td><span class="tok">E</span></td><td>eyes_open = 1, SAFE, motors allowed</td></tr>
+          <tr><td><span class="chip m">CLOSED</span></td><td><span class="tok">C</span></td><td>eyes_open = 0, STATE_EYES_CLOSED, Motor_Stop()</td></tr>
+          <tr><td>UNKNOWN / stale &gt; 2 s</td><td><span class="tok">C</span></td><td>same fail-safe path</td></tr>
+          <tr><td>network error</td><td>hold last</td><td>stale window fires within 2 s</td></tr>
+          <tr><td>shutdown (SIGINT)</td><td>final <span class="tok">C</span></td><td>car parked safely</td></tr>
+        </tbody>
+      </table>
+      <p class="small" style="margin-top:.4em;">Edge-triggered + 5 s heartbeat re-send so the PIC re-syncs if a UART byte is ever lost &mdash; no firmware change required for that watchdog.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">06 · Lane RPi artifact</div>
+  <h2>The shipped Pi model and its on-device contract</h2>
+  <div class="two-col">
+    <div class="panel">
+      <h3>What the Pi actually receives</h3>
+      <ul>
+        <li><strong>File:</strong> <span class="tok">deployment/lane/lane_truncated_3class.tflite</span> &mdash; 27.0 KB int8.</li>
+        <li><strong>Input:</strong> shape <span class="tok">(1, 128, 128, 3)</span>, dtype int8, scale 0.002753, zero_point -128.</li>
+        <li><strong>Output:</strong> shape <span class="tok">(1, 128, 128, 3)</span>, int8 softmax over <span class="chip">bg</span> <span class="chip g">lane-left</span> <span class="chip m">lane-right</span>.</li>
+        <li><strong>Runtime:</strong> <span class="tok">tflite-runtime</span> with XNNPACK CPU delegate, 4 threads &mdash; the recommended path on RPi for small int8 models.</li>
+        <li><strong>Demo:</strong> a paste-able Claude Code prompt in <span class="tok">deployment/lane/README.md</span> builds <span class="tok">lane_live.py</span> with picamera2 + cv2 overlay + FPS / inference text on the frame.</li>
+      </ul>
+    </div>
+    <div class="panel green">
+      <h3>Why this is ~320&times; smaller than the published lane baselines</h3>
+      <ul>
+        <li>2 encoder blocks (not 4+).</li>
+        <li>Widths 8 / 16 / 24 (not 64 / 128 / 256 / 512).</li>
+        <li>128&times;128 input (not 256&times;512 or 1280&times;720).</li>
+        <li>int8 weights (not FP32).</li>
+      </ul>
+      <p class="small">Calibrated against the locally-measured 0.55 ms-per-inference desktop CPU latency, the Pi 4 should keep the 30 fps Pi-Camera frame budget at multiple-frames-of-headroom. Real Pi numbers will be added once the device is available.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================= -->
+<!-- SECTION 7 - INSIGHTS                                               -->
+<!-- ================================================================= -->
+<section><div class="divider">
+  <div class="num">07</div>
+  <h1>Key Insights</h1>
+  <div class="blurb">Four things that survive past this project &mdash; the ones we expect to be re-cited.</div>
+</div></section>
+
+<section>
+  <div class="eyebrow">07 · Insight 1</div>
+  <h2>Lightweight wins at small <em>N</em></h2>
+  <div class="two-col right-wide">
+    <div class="panel">
+      <h3>Quantified</h3>
+      <p class="small">CEW has 2 423 samples. MobileNet candidates carry 1&ndash;2 million parameters, more than two orders of magnitude beyond the dataset's information budget for binary classification.</p>
+      <ul>
+        <li><strong>cnn_from_scratch</strong> &mdash; 0.896 at 25.8 k params.</li>
+        <li><strong>mobilenetv2_finetune</strong> &mdash; 0.885 at 2.26 M params.</li>
+        <li><strong>~88&times; larger model, 0.011 less accurate.</strong></li>
+      </ul>
+      <div class="takeaway">The cross-over likely sits at ~50 k labelled examples. Below that, custom small networks beat off-the-shelf transferred giants on accuracy <em>and</em> latency.</div>
+    </div>
+    <div><img src="assets/fig_eye_params_acc.png" alt="params vs acc"></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">07 · Insight 2</div>
+  <h2>CEW does not transfer zero-shot, and the fix is cheap</h2>
+  <div class="metric-row">
+    <div class="panel"><div class="metric">0.907</div><div class="lbl">CEW test (canonical)</div></div>
+    <div class="panel"><div class="metric magenta">0.568</div><div class="lbl">on 44 S24 captures (zero-shot)</div></div>
+    <div class="panel"><div class="metric green">1.000</div><div class="lbl">after 44-photo fine-tune</div></div>
+    <div class="panel"><div class="metric">4.2 s</div><div class="lbl">desktop CPU cost of the fix</div></div>
+  </div>
+  <div class="panel" style="margin-top:.4em;">
+    <p class="small">CEW's collection conditions (mostly clean-shaven, mostly East-Asian, mostly forward-looking subjects, mostly indoor sodium-lamp lighting) are very different from typical 2026 smartphone-selfie conditions (beards, headphones, mixed lighting, oblique gaze toward a laptop screen). The recovery prescription is unspectacular: 44 labeled photos of the eventual users, four seconds of desktop-CPU fine-tune, no architectural change.</p>
+  </div>
+  <div class="takeaway amber">This is the kind of domain gap a literature-reported &ge;95 % on CEW does <em>not</em> forewarn you of. The per-user fine-tune is a useful template for any drowsiness-detection product targeting non-East-Asian or non-clean-shaven drivers.</div>
+</section>
+
+<section>
+  <div class="eyebrow">07 · Insight 3</div>
+  <h2>Mask regeneration is mandatory when the segmentor is out of distribution</h2>
+  <div class="two-col">
+    <div><img src="assets/fig_lane_masks_v2.png" alt="mask compare"></div>
+    <div class="panel">
+      <h3>The story in numbers</h3>
+      <ul>
+        <li>SegFormer-Cityscapes on Pi test-bench: median lane coverage <strong>0.8 %</strong>, range 0.0&ndash;13.6 %.</li>
+        <li>Otsu + 3&times;3 open + 200 px component filter: median <strong>34.2 %</strong>, tight range.</li>
+        <li>Sanity overfit IoU: <strong>0.244 &rarr; 0.992</strong> on the same 50 images / same model / same optimizer &mdash; only the supervision changes.</li>
+        <li>Replacement runs at <strong>21 ms / frame on CPU</strong> &mdash; 4 lines of OpenCV.</li>
+      </ul>
+      <div class="takeaway">When a deep segmentor's training distribution is far from your deployment distribution, a four-line classical pipeline delivers mask quality no amount of fine-tuning will recover.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">07 · Insight 4</div>
+  <h2>Depth hurts on a high-contrast domain</h2>
+  <div class="metric-row">
+    <div class="panel"><div class="metric">86 k</div><div class="lbl">TuSimple-trained lw_baseline</div></div>
+    <div class="panel"><div class="metric magenta">vs</div><div class="lbl"></div></div>
+    <div class="panel"><div class="metric green">12 627</div><div class="lbl">Pi-domain truncated U-Net</div></div>
+  </div>
+  <div class="panel" style="margin-top:.5em;">
+    <p class="small">Both reach effectively the same IoU on the Pi test split. The 6.8&times; smaller model trains in <strong>9.8 min</strong> on desktop CPU from scratch, occupies <strong>26.7 KB</strong> after PTQ-int8, and inherits no spurious sky / horizon / vehicle features that would later need to be unlearned.</p>
+    <p class="small">From the supervisor's direct guidance: <em>"You can't fine-tune a deep model trained on high-level features such as the TuSimple dataset with a trivial case such as the Pi camera dataset and expect results &mdash; you should first drop some of the high-level feature extractors."</em></p>
+  </div>
+  <div class="takeaway">On a domain whose information content collapses to a single dark / light threshold, depth is dead weight. The shallow network is not only smaller and faster; it is structurally a better fit for the task.</div>
+</section>
+
+<!-- ================================================================= -->
+<!-- CONCLUSION                                                         -->
+<!-- ================================================================= -->
+<section>
+  <div class="divider">
+    <div class="num">FIN</div>
+    <h1>Conclusion</h1>
+    <div class="blurb">Two pipelines, end-to-end, on real hardware, with the receipts.</div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">FIN &middot; What ships</div>
+  <h2>The deliverables, in one slide</h2>
+  <table>
+    <thead><tr><th>Artifact</th><th>Size</th><th>Metric</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr><td class="hi">deployment/eye/eye_winner.tflite</td><td>107 KB</td><td>100% on 44 captures, 76.4% CEW retained</td><td>S24 Ultra (live app)</td></tr>
+      <tr><td class="hi">deployment/lane/lane_truncated_3class.tflite</td><td>27.0 KB</td><td>mean IoU 0.9931</td><td>RPi 4 (Claude Code prompt)</td></tr>
+      <tr><td>deployment/lane/lane_truncated_binary.tflite</td><td>26.7 KB</td><td>IoU 0.9969</td><td>simpler RPi downstream</td></tr>
+      <tr><td>deployment/pi/eye_to_pic.py</td><td>~6 KB script</td><td>edge-triggered + heartbeat + fail-safe</td><td>Pi&rarr;PIC UART</td></tr>
+      <tr><td>android_app/</td><td>~57 MB debug APK</td><td>~30 fps, 1 ms median end-to-end</td><td>S24 Ultra</td></tr>
+      <tr><td>paper/paper.pdf</td><td>12 pages IEEE</td><td>compiles cleanly</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <div class="takeaway">All code, masks, notebooks, models and the paper are reproducible from <span class="tok">git clone</span>. See <span class="tok">github.com/AhmedNasr5804/computer-vision-project</span>.</div>
+</section>
+
+<section>
+  <div class="eyebrow">FIN &middot; What we would do next</div>
+  <h2>Three things, ordered by impact</h2>
+  <div class="three-col">
+    <div class="panel">
+      <h3>1. Hexagon via QNN</h3>
+      <p class="small">Switch the Android runtime from stock TFLite + NNAPI fallback to the Qualcomm AI Engine Direct delegate. Should bring the int8 model from CPU 0.126 ms to NPU sub-50 &micro;s &mdash; freeing budget for the ML Kit face detector to dominate the end-to-end latency more cleanly.</p>
+    </div>
+    <div class="panel">
+      <h3>2. RPi-measured numbers</h3>
+      <p class="small">Run <span class="tok">lane_live.py</span> (the Claude Code-generated script) on a real Pi 4 and report measured latency / FPS. Replace the simulation-calibrated numbers in the paper.</p>
+    </div>
+    <div class="panel">
+      <h3>3. Three-class eye</h3>
+      <p class="small">Extend the eye head to <span class="chip g">open</span> / <span class="chip a">half</span> / <span class="chip m">closed</span> &mdash; absorbs the partial-eye misclassification gallery without changing the backbone. Will need a small re-labelling effort on CEW or a per-user fine-tune.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="divider" style="text-align:center;align-items:center;">
+    <div class="num" style="text-align:center;">END</div>
+    <h1 style="text-align:center;">Thank you.</h1>
+    <p class="small" style="text-align:center;color:var(--text-dim);max-width:30em;margin:1em auto 0;">Two custom networks. Two deployment targets. Twelve pages of paper. Forty-four photos. One supervisor-driven rebuild that turned 0.244 IoU into 0.992. The repo is live.</p>
+    <p style="text-align:center;margin-top:1.4em;font-family:'JetBrains Mono',monospace;font-size:.55em;color:var(--cyan);">github.com/AhmedNasr5804/computer-vision-project</p>
+  </div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  width: 1400,
+  height: 875,
+  margin: 0.04,
+  hash: true,
+  controls: true,
+  progress: true,
+  slideNumber: 'c/t',
+  transition: 'fade',
+  backgroundTransition: 'fade',
+  controlsTutorial: false,
+});
+</script>
+</body>
+</html>
